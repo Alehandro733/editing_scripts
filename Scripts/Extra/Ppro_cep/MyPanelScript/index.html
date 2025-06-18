@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<title>Premiere Pro CEP Panel</title>
+
+<!-- CEP SDK -->
+<script src="CSInterface.js"></script>
+<script src="main.js"></script>
+
+<style>
+body{background:#2d2d2d;margin:0;padding:20px;font-family:Arial,sans-serif;color:#fff}
+h2{margin-bottom:20px}
+.button-container{display:flex;flex-direction:column;gap:20px;width:100%}
+.button-wrapper{position:relative;background:#404040;border:1px solid #5a5a5a;border-radius:4px;
+                padding:12px;box-sizing:border-box;transition:background .3s;overflow:hidden;width:100%}
+.button-wrapper:hover{background:#505050}
+.main-btn{width:100%;background:none;border:none;color:#fff;font-size:16px;text-align:left;cursor:pointer;padding:0}
+.par-btn{position:absolute;top:12px;right:12px;padding:4px 8px;font-size:12px;border:1px solid #5a5a5a;
+         border-radius:3px;background:#5a5a5a;color:#fff;cursor:pointer;transition:background .3s}
+.par-btn:hover{background:#666}
+.param-content{margin-top:10px;border-top:1px solid #5a5a5a;padding-top:10px;display:none}
+.button-wrapper.expanded .param-content{display:flex;flex-wrap:wrap;gap:12px}
+.param-item{flex:0 1 auto;min-width:120px}
+.param-item label{display:block;margin-bottom:4px;font-size:12px;color:#ccc}
+.param-input{width:100%;padding:6px;background:#2d2d2d;border:1px solid #5a5a5a;border-radius:3px;color:#fff;box-sizing:border-box}
+</style>
+</head>
+<body>
+<h2>Magic Scripts v1</h2>
+
+<div class="button-container">
+
+  <!-- 1. zigZagAudioClipsWithOffset -->
+  <div class="button-wrapper">
+    <button class="main-btn" data-fn="zigZagAudioClipsWithOffset"
+            title="Выравнивание выбранных клипов зиг‑загом на треках 1‑2 с паузами">Зиг‑заг аудио</button>
+    <button class="par-btn" title="Показать параметры">par</button>
+    <div class="param-content">
+      <div class="param-item">
+        <label for="zig-upper">Пауза верх (c)</label>
+        <input id="zig-upper" type="number" step="0.1" class="param-input" placeholder="0.5"
+               title="Пауза после верхних клипов, с">
+      </div>
+      <div class="param-item">
+        <label for="zig-lower">Пауза низ (c)</label>
+        <input id="zig-lower" type="number" step="0.1" class="param-input" placeholder="0.3"
+               title="Пауза после нижних клипов, с">
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. alignSelectedVideoToAudio -->
+  <div class="button-wrapper">
+    <button class="main-btn" data-fn="alignSelectedVideoToAudio"
+            title="Выравнивание выбранных видео‑клипов по выбранным аудио‑клипам">
+      Выровнять видео по аудио
+    </button>
+  </div>
+
+  <!-- 3. glueSelectedAudioClipsAddGap -->
+  <div class="button-wrapper">
+    <button class="main-btn" data-fn="glueSelectedAudioClipsAddGap"
+            title="Удалить паузы между клипами и задать фиксированную">
+      Склеить аудио‑клипы с паузой
+    </button>
+    <button class="par-btn" title="Показать параметры">par</button>
+    <div class="param-content">
+      <div class="param-item">
+        <label for="gap">Пауза (c)</label>
+        <input id="gap" type="number" step="0.1" class="param-input" placeholder="0.0"
+               title="Пауза между клипами, с">
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. AlignImagesToCsvMarks -->
+  <div class="button-wrapper">
+    <button class="main-btn" data-fn="AlignImagesToCsvMarks"
+            title="Выравнивание картинок по меткам из CSV (выберите картинки и аудио‑клипы)">
+      Выровнять картинки по меткам CSV
+    </button>
+  </div>
+
+  <!-- 5. AlignAudioClipsToCsvMarks -->
+  <div class="button-wrapper">
+    <button class="main-btn" data-fn="AlignAudioClipsToCsvMarks"
+            title="Выделите аудио‑эффекты и аудио‑клипы для выравнивания">
+      Выровнять аудио‑клипы по меткам CSV
+    </button>
+    <button class="par-btn" title="Показать параметры">par</button>
+    <div class="param-content">
+      <div class="param-item">
+        <label for="track-num">Трек эффектов</label>
+        <input id="track-num" type="number" step="1" min="1" class="param-input" placeholder="5"
+               title="Номер трека, где находятся аудио‑эффекты">
+      </div>
+    </div>
+  </div>
+
+</div><!-- /.button-container -->
+
+<script>
+/* 1. Раскрытие параметров */
+document.querySelectorAll('.par-btn').forEach(btn => {
+  btn.addEventListener('click', () =>
+    btn.closest('.button-wrapper').classList.toggle('expanded')
+  );
+});
+
+/* 2. CEP‑взаимодействие */
+document.addEventListener('DOMContentLoaded', () => {
+
+  const csInterface = new CSInterface();
+
+  document.querySelectorAll('.main-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const fnName = btn.dataset.fn;
+      if (!fnName) {
+        console.warn('data-fn не указан');
+        return;
+      }
+
+      /* собираем числовые параметры из полей внутри этого блока */
+      const inputs = btn.closest('.button-wrapper').querySelectorAll('.param-input');
+      const params = Array.from(inputs).map(inp => parseFloat(inp.value || 0));
+      const paramStr = params.join(',');
+
+      /* путь ко всем jsx теперь один */
+      const jsxPath = csInterface.getSystemPath(SystemPath.EXTENSION)
+                    + '/jsx/tstScripts.jsx';
+
+      /* формируем и отправляем команду */
+      const cmd = `$.evalFile("${jsxPath}"); ${fnName}(${paramStr});`;
+      csInterface.evalScript(cmd);
+    });
+  });
+
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExtensionManifest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ExtensionBundleId="com.adobe.YourMenuExtension" ExtensionBundleVersion="1.0" Version="6.0">
+    <ExtensionList>
+        <Extension Id="com.adobe.YourMenuExtension.Panel" Version="1.0.0"/>
+    </ExtensionList>
+    <ExecutionEnvironment>
+        <HostList>
+            <!-- Здесь перечислите нужные хосты, например, PPRO для Adobe premiere pro -->
+            <Host Name="PPRO" Version="19.0"/>
+        </HostList>
+        <LocaleList>
+            <Locale Code="All"/>
+        </LocaleList>
+        <RequiredRuntimeList>
+            <RequiredRuntime Name="CSXS" Version="9.0"/>
+        </RequiredRuntimeList>
+    </ExecutionEnvironment>
+    <DispatchInfoList>
+        <Extension Id="com.adobe.YourMenuExtension.Panel">
+            <DispatchInfo>
+                <Resources>
+                    <!-- Основной HTML-файл, который содержит меню с кнопками -->
+                    <MainPath>./index.html</MainPath>
+                    <!-- Скрипты JSX, которые будут запускаться -->
+                    <ScriptPath>./jsx/core.jsx</ScriptPath>
+		    <ScriptPath>./jsx/tstScripts.jsx</ScriptPath>
+                    <CEFCommandLine>
+                        <Parameter>--enable-nodejs</Parameter>
+                    </CEFCommandLine>
+                </Resources>
+                <Lifecycle>
+                    <AutoVisible>true</AutoVisible>
+                </Lifecycle>
+                <UI>
+                    <Type>Panel</Type>
+                    <!-- Название меню в панели -->
+                    <Menu>Editing Scripts</Menu>
+                    <Geometry>
+                        <Size>
+                            <Height>300</Height>
+                            <Width>400</Width>
+                        </Size>
+                        <MaxSize>
+                            <Height>600</Height>
+                            <Width>800</Width>
+                        </MaxSize>
+                        <MinSize>
+                            <Height>200</Height>
+                            <Width>300</Width>
+                        </MinSize>
+                    </Geometry>
+                </UI>
+            </DispatchInfo>
+        </Extension>
+    </DispatchInfoList>
+</ExtensionManifest>

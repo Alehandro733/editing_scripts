@@ -1,0 +1,5 @@
+папку "MyPanelScript" из архива поместить по пути C:\Program Files (x86)\Common Files\Adobe\CEP\extensions
+Получится так C:\Program Files (x86)\Common Files\Adobe\CEP\extensions\MyPanelScript
+
+Запустить reg файл csxs
+
