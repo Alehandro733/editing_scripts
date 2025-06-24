@@ -1,0 +1,121 @@
+{
+  "build": "pyh7900ff3_2",
+  "build_number": 2,
+  "channel": "https://conda.anaconda.org/conda-forge/win-64",
+  "constrains": [],
+  "depends": [
+    "conda-package-streaming >=0.9.0",
+    "python >=3.9",
+    "requests",
+    "zstandard >=0.15"
+  ],
+  "extracted_package_dir": "C:\\miniforge3\\pkgs\\conda-package-handling-2.4.0-pyh7900ff3_2",
+  "files": [
+    "Lib/site-packages/conda_package_handling-2.4.0.dist-info/AUTHORS.md",
+    "Lib/site-packages/conda_package_handling-2.4.0.dist-info/INSTALLER",
+    "Lib/site-packages/conda_package_handling-2.4.0.dist-info/LICENSE",
+    "Lib/site-packages/conda_package_handling-2.4.0.dist-info/METADATA",
+    "Lib/site-packages/conda_package_handling-2.4.0.dist-info/RECORD",
+    "Lib/site-packages/conda_package_handling-2.4.0.dist-info/REQUESTED",
+    "Lib/site-packages/conda_package_handling-2.4.0.dist-info/WHEEL",
+    "Lib/site-packages/conda_package_handling-2.4.0.dist-info/direct_url.json",
+    "Lib/site-packages/conda_package_handling-2.4.0.dist-info/entry_points.txt",
+    "Lib/site-packages/conda_package_handling-2.4.0.dist-info/top_level.txt",
+    "Lib/site-packages/conda_package_handling/__init__.py",
+    "Lib/site-packages/conda_package_handling/__main__.py",
+    "Lib/site-packages/conda_package_handling/api.py",
+    "Lib/site-packages/conda_package_handling/cli.py",
+    "Lib/site-packages/conda_package_handling/conda_fmt.py",
+    "Lib/site-packages/conda_package_handling/exceptions.py",
+    "Lib/site-packages/conda_package_handling/interface.py",
+    "Lib/site-packages/conda_package_handling/streaming.py",
+    "Lib/site-packages/conda_package_handling/tarball.py",
+    "Lib/site-packages/conda_package_handling/utils.py",
+    "Lib/site-packages/conda_package_handling/validate.py",
+    "Lib/site-packages/conda_package_handling/__pycache__/__init__.cpython-312.pyc",
+    "Lib/site-packages/conda_package_handling/__pycache__/__main__.cpython-312.pyc",
+    "Lib/site-packages/conda_package_handling/__pycache__/api.cpython-312.pyc",
+    "Lib/site-packages/conda_package_handling/__pycache__/cli.cpython-312.pyc",
+    "Lib/site-packages/conda_package_handling/__pycache__/conda_fmt.cpython-312.pyc",
+    "Lib/site-packages/conda_package_handling/__pycache__/exceptions.cpython-312.pyc",
+    "Lib/site-packages/conda_package_handling/__pycache__/interface.cpython-312.pyc",
+    "Lib/site-packages/conda_package_handling/__pycache__/streaming.cpython-312.pyc",
+    "Lib/site-packages/conda_package_handling/__pycache__/tarball.cpython-312.pyc",
+    "Lib/site-packages/conda_package_handling/__pycache__/utils.cpython-312.pyc",
+    "Lib/site-packages/conda_package_handling/__pycache__/validate.cpython-312.pyc",
+    "Scripts/cph-script.py",
+    "Scripts/cph.exe"
+  ],
+  "fn": "conda-package-handling-2.4.0-pyh7900ff3_2.conda",
+  "license": "BSD-3-Clause",
+  "license_family": "BSD",
+  "link": {
+    "source": "C:\\miniforge3\\pkgs\\conda-package-handling-2.4.0-pyh7900ff3_2",
+    "type": 1
+  },
+  "md5": "32c158f481b4fd7630c565030f7bc482",
+  "name": "conda-package-handling",
+  "noarch": "python",
+  "package_tarball_full_path": "C:\\miniforge3\\pkgs\\conda-package-handling-2.4.0-pyh7900ff3_2.conda",
+  "package_type": "noarch_python",
+  "paths_data": {
+    "paths": [
+      {
+        "_path": "Lib/site-packages/conda_package_handling/__pycache__/__init__.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/conda_package_handling/__pycache__/__main__.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/conda_package_handling/__pycache__/api.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/conda_package_handling/__pycache__/cli.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/conda_package_handling/__pycache__/conda_fmt.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/conda_package_handling/__pycache__/exceptions.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/conda_package_handling/__pycache__/interface.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/conda_package_handling/__pycache__/streaming.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/conda_package_handling/__pycache__/tarball.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/conda_package_handling/__pycache__/utils.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/conda_package_handling/__pycache__/validate.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Scripts/cph-script.py",
+        "path_type": "windows_python_entry_point_script"
+      }
+    ],
+    "paths_version": 1
+  },
+  "requested_spec": "conda-forge/noarch::conda-package-handling==2.4.0=pyh7900ff3_2[md5=32c158f481b4fd7630c565030f7bc482]",
+  "sha256": "8b2b1c235b7cbfa8488ad88ff934bdad25bac6a4c035714681fbff85b602f3f0",
+  "size": 257995,
+  "subdir": "noarch",
+  "timestamp": 1736345601000,
+  "url": "https://conda.anaconda.org/conda-forge/noarch/conda-package-handling-2.4.0-pyh7900ff3_2.conda",
+  "version": "2.4.0"
+}

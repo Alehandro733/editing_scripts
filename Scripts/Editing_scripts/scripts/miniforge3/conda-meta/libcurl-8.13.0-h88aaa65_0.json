@@ -1,0 +1,54 @@
+{
+  "arch": "x86_64",
+  "build": "h88aaa65_0",
+  "build_number": 0,
+  "channel": "https://conda.anaconda.org/conda-forge/win-64",
+  "constrains": [],
+  "depends": [
+    "krb5 >=1.21.3,<1.22.0a0",
+    "libssh2 >=1.11.1,<2.0a0",
+    "libzlib >=1.3.1,<2.0a0",
+    "ucrt >=10.0.20348.0",
+    "vc >=14.2,<15",
+    "vc14_runtime >=14.29.30139"
+  ],
+  "extracted_package_dir": "C:\\miniforge3\\pkgs\\libcurl-8.13.0-h88aaa65_0",
+  "files": [
+    "Library/bin/libcurl.dll",
+    "Library/include/curl/curl.h",
+    "Library/include/curl/curlver.h",
+    "Library/include/curl/easy.h",
+    "Library/include/curl/header.h",
+    "Library/include/curl/mprintf.h",
+    "Library/include/curl/multi.h",
+    "Library/include/curl/options.h",
+    "Library/include/curl/stdcheaders.h",
+    "Library/include/curl/system.h",
+    "Library/include/curl/typecheck-gcc.h",
+    "Library/include/curl/urlapi.h",
+    "Library/include/curl/websockets.h",
+    "Library/lib/libcurl.lib"
+  ],
+  "fn": "libcurl-8.13.0-h88aaa65_0.conda",
+  "license": "curl",
+  "license_family": "MIT",
+  "link": {
+    "source": "C:\\miniforge3\\pkgs\\libcurl-8.13.0-h88aaa65_0",
+    "type": 1
+  },
+  "md5": "c9cf6eb842decbb66c2f34e72c3580d6",
+  "name": "libcurl",
+  "package_tarball_full_path": "C:\\miniforge3\\pkgs\\libcurl-8.13.0-h88aaa65_0.conda",
+  "paths_data": {
+    "paths": [],
+    "paths_version": 1
+  },
+  "platform": "win32",
+  "requested_spec": "conda-forge/win-64::libcurl==8.13.0=h88aaa65_0[md5=c9cf6eb842decbb66c2f34e72c3580d6]",
+  "sha256": "185553b37c0299b7a15dc66a7a7e2a0d421adaac784ec9298a0b2ad745116ca5",
+  "size": 357142,
+  "subdir": "win-64",
+  "timestamp": 1743602240000,
+  "url": "https://conda.anaconda.org/conda-forge/win-64/libcurl-8.13.0-h88aaa65_0.conda",
+  "version": "8.13.0"
+}

@@ -1,0 +1,69 @@
+{
+  "build": "pyhd8ed1ab_1",
+  "build_number": 1,
+  "channel": "https://conda.anaconda.org/conda-forge/win-64",
+  "constrains": [],
+  "depends": [
+    "python >=3.9"
+  ],
+  "extracted_package_dir": "C:\\miniforge3\\pkgs\\distro-1.9.0-pyhd8ed1ab_1",
+  "files": [
+    "Lib/site-packages/distro-1.9.0.dist-info/INSTALLER",
+    "Lib/site-packages/distro-1.9.0.dist-info/LICENSE",
+    "Lib/site-packages/distro-1.9.0.dist-info/METADATA",
+    "Lib/site-packages/distro-1.9.0.dist-info/RECORD",
+    "Lib/site-packages/distro-1.9.0.dist-info/REQUESTED",
+    "Lib/site-packages/distro-1.9.0.dist-info/WHEEL",
+    "Lib/site-packages/distro-1.9.0.dist-info/direct_url.json",
+    "Lib/site-packages/distro-1.9.0.dist-info/entry_points.txt",
+    "Lib/site-packages/distro-1.9.0.dist-info/top_level.txt",
+    "Lib/site-packages/distro/__init__.py",
+    "Lib/site-packages/distro/__main__.py",
+    "Lib/site-packages/distro/distro.py",
+    "Lib/site-packages/distro/py.typed",
+    "Lib/site-packages/distro/__pycache__/__init__.cpython-312.pyc",
+    "Lib/site-packages/distro/__pycache__/__main__.cpython-312.pyc",
+    "Lib/site-packages/distro/__pycache__/distro.cpython-312.pyc",
+    "Scripts/distro-script.py",
+    "Scripts/distro.exe"
+  ],
+  "fn": "distro-1.9.0-pyhd8ed1ab_1.conda",
+  "license": "Apache-2.0",
+  "link": {
+    "source": "C:\\miniforge3\\pkgs\\distro-1.9.0-pyhd8ed1ab_1",
+    "type": 1
+  },
+  "md5": "0a2014fd9860f8b1eaa0b1f3d3771a08",
+  "name": "distro",
+  "noarch": "python",
+  "package_tarball_full_path": "C:\\miniforge3\\pkgs\\distro-1.9.0-pyhd8ed1ab_1.conda",
+  "package_type": "noarch_python",
+  "paths_data": {
+    "paths": [
+      {
+        "_path": "Lib/site-packages/distro/__pycache__/__init__.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/distro/__pycache__/__main__.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/distro/__pycache__/distro.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Scripts/distro-script.py",
+        "path_type": "windows_python_entry_point_script"
+      }
+    ],
+    "paths_version": 1
+  },
+  "requested_spec": "conda-forge/noarch::distro==1.9.0=pyhd8ed1ab_1[md5=0a2014fd9860f8b1eaa0b1f3d3771a08]",
+  "sha256": "5603c7d0321963bb9b4030eadabc3fd7ca6103a38475b4e0ed13ed6d97c86f4e",
+  "size": 41773,
+  "subdir": "noarch",
+  "timestamp": 1734729953000,
+  "url": "https://conda.anaconda.org/conda-forge/noarch/distro-1.9.0-pyhd8ed1ab_1.conda",
+  "version": "1.9.0"
+}

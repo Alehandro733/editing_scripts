@@ -1,0 +1,51 @@
+{
+  "arch": "x86_64",
+  "build": "py312h275cf98_2",
+  "build_number": 2,
+  "channel": "https://conda.anaconda.org/conda-forge/win-64",
+  "constrains": [
+    "libbrotlicommon 1.1.0 h2466b09_2"
+  ],
+  "depends": [
+    "python >=3.12,<3.13.0a0",
+    "python_abi 3.12.* *_cp312",
+    "ucrt >=10.0.20348.0",
+    "vc >=14.2,<15",
+    "vc14_runtime >=14.29.30139"
+  ],
+  "extracted_package_dir": "C:\\miniforge3\\pkgs\\brotli-python-1.1.0-py312h275cf98_2",
+  "files": [
+    "Lib/site-packages/Brotli-1.1.0.dist-info/INSTALLER",
+    "Lib/site-packages/Brotli-1.1.0.dist-info/LICENSE",
+    "Lib/site-packages/Brotli-1.1.0.dist-info/METADATA",
+    "Lib/site-packages/Brotli-1.1.0.dist-info/RECORD",
+    "Lib/site-packages/Brotli-1.1.0.dist-info/REQUESTED",
+    "Lib/site-packages/Brotli-1.1.0.dist-info/WHEEL",
+    "Lib/site-packages/Brotli-1.1.0.dist-info/direct_url.json",
+    "Lib/site-packages/Brotli-1.1.0.dist-info/top_level.txt",
+    "Lib/site-packages/__pycache__/brotli.cpython-312.pyc",
+    "Lib/site-packages/_brotli.cp312-win_amd64.pyd",
+    "Lib/site-packages/brotli.py"
+  ],
+  "fn": "brotli-python-1.1.0-py312h275cf98_2.conda",
+  "license": "MIT",
+  "link": {
+    "source": "C:\\miniforge3\\pkgs\\brotli-python-1.1.0-py312h275cf98_2",
+    "type": 1
+  },
+  "md5": "a99aec1ac46794a5fb1cd3cf5d2b6110",
+  "name": "brotli-python",
+  "package_tarball_full_path": "C:\\miniforge3\\pkgs\\brotli-python-1.1.0-py312h275cf98_2.conda",
+  "paths_data": {
+    "paths": [],
+    "paths_version": 1
+  },
+  "platform": "win32",
+  "requested_spec": "conda-forge/win-64::brotli-python==1.1.0=py312h275cf98_2[md5=a99aec1ac46794a5fb1cd3cf5d2b6110]",
+  "sha256": "f83baa6f6bcba7b73f6921d5c1aa95ffc5d8b246ade933ade79250de0a4c9c4c",
+  "size": 321874,
+  "subdir": "win-64",
+  "timestamp": 1725268491000,
+  "url": "https://conda.anaconda.org/conda-forge/win-64/brotli-python-1.1.0-py312h275cf98_2.conda",
+  "version": "1.1.0"
+}

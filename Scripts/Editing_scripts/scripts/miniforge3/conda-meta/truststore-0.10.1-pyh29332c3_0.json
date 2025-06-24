@@ -1,0 +1,80 @@
+{
+  "build": "pyh29332c3_0",
+  "build_number": 0,
+  "channel": "https://conda.anaconda.org/conda-forge/win-64",
+  "constrains": [],
+  "depends": [
+    "python >=3.10",
+    "python"
+  ],
+  "extracted_package_dir": "C:\\miniforge3\\pkgs\\truststore-0.10.1-pyh29332c3_0",
+  "files": [
+    "Lib/site-packages/truststore/__init__.py",
+    "Lib/site-packages/truststore/_api.py",
+    "Lib/site-packages/truststore/_macos.py",
+    "Lib/site-packages/truststore/_openssl.py",
+    "Lib/site-packages/truststore/_ssl_constants.py",
+    "Lib/site-packages/truststore/_windows.py",
+    "Lib/site-packages/truststore/py.typed",
+    "Lib/site-packages/truststore-0.10.1.dist-info/INSTALLER",
+    "Lib/site-packages/truststore-0.10.1.dist-info/LICENSE",
+    "Lib/site-packages/truststore-0.10.1.dist-info/METADATA",
+    "Lib/site-packages/truststore-0.10.1.dist-info/RECORD",
+    "Lib/site-packages/truststore-0.10.1.dist-info/REQUESTED",
+    "Lib/site-packages/truststore-0.10.1.dist-info/WHEEL",
+    "Lib/site-packages/truststore-0.10.1.dist-info/direct_url.json",
+    "Lib/site-packages/truststore/__pycache__/__init__.cpython-312.pyc",
+    "Lib/site-packages/truststore/__pycache__/_api.cpython-312.pyc",
+    "Lib/site-packages/truststore/__pycache__/_macos.cpython-312.pyc",
+    "Lib/site-packages/truststore/__pycache__/_openssl.cpython-312.pyc",
+    "Lib/site-packages/truststore/__pycache__/_ssl_constants.cpython-312.pyc",
+    "Lib/site-packages/truststore/__pycache__/_windows.cpython-312.pyc"
+  ],
+  "fn": "truststore-0.10.1-pyh29332c3_0.conda",
+  "license": "MIT",
+  "link": {
+    "source": "C:\\miniforge3\\pkgs\\truststore-0.10.1-pyh29332c3_0",
+    "type": 1
+  },
+  "md5": "373a72aeffd8a5d93652ef1235062252",
+  "name": "truststore",
+  "noarch": "python",
+  "package_tarball_full_path": "C:\\miniforge3\\pkgs\\truststore-0.10.1-pyh29332c3_0.conda",
+  "package_type": "noarch_python",
+  "paths_data": {
+    "paths": [
+      {
+        "_path": "Lib/site-packages/truststore/__pycache__/__init__.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/truststore/__pycache__/_api.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/truststore/__pycache__/_macos.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/truststore/__pycache__/_openssl.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/truststore/__pycache__/_ssl_constants.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/truststore/__pycache__/_windows.cpython-312.pyc",
+        "path_type": "pyc_file"
+      }
+    ],
+    "paths_version": 1
+  },
+  "requested_spec": "conda-forge/noarch::truststore==0.10.1=pyh29332c3_0[md5=373a72aeffd8a5d93652ef1235062252]",
+  "sha256": "12ac41c281dc2cb6e15b7d9a758913550fc452debfe985634c9f8d347429b0af",
+  "size": 23354,
+  "subdir": "noarch",
+  "timestamp": 1739009763000,
+  "url": "https://conda.anaconda.org/conda-forge/noarch/truststore-0.10.1-pyh29332c3_0.conda",
+  "version": "0.10.1"
+}

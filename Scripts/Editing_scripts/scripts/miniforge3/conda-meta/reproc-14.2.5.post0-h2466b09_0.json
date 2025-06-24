@@ -1,0 +1,57 @@
+{
+  "arch": "x86_64",
+  "build": "h2466b09_0",
+  "build_number": 0,
+  "channel": "https://conda.anaconda.org/conda-forge/win-64",
+  "constrains": [],
+  "depends": [
+    "ucrt >=10.0.20348.0",
+    "vc >=14.2,<15",
+    "vc14_runtime >=14.29.30139"
+  ],
+  "extracted_package_dir": "C:\\miniforge3\\pkgs\\reproc-14.2.5.post0-h2466b09_0",
+  "files": [
+    "Library/bin/reproc.dll",
+    "Library/include/reproc/drain.h",
+    "Library/include/reproc/export.h",
+    "Library/include/reproc/reproc.h",
+    "Library/include/reproc/run.h",
+    "Library/lib/cmake/reproc/reproc-config-version.cmake",
+    "Library/lib/cmake/reproc/reproc-config.cmake",
+    "Library/lib/cmake/reproc/reproc-targets-release.cmake",
+    "Library/lib/cmake/reproc/reproc-targets.cmake",
+    "Library/lib/pkgconfig/reproc.pc",
+    "Library/lib/reproc.lib"
+  ],
+  "fn": "reproc-14.2.5.post0-h2466b09_0.conda",
+  "license": "MIT",
+  "link": {
+    "source": "C:\\miniforge3\\pkgs\\reproc-14.2.5.post0-h2466b09_0",
+    "type": 1
+  },
+  "md5": "c3ca4c18c99a3b9832e11b11af227713",
+  "name": "reproc",
+  "package_tarball_full_path": "C:\\miniforge3\\pkgs\\reproc-14.2.5.post0-h2466b09_0.conda",
+  "paths_data": {
+    "paths": [
+      {
+        "_path": "Library/lib/pkgconfig/reproc.pc",
+        "file_mode": "text",
+        "path_type": "hardlink",
+        "prefix_placeholder": "D:/bld/reproc-split_1731925757397/_h_env",
+        "sha256": "b4bbb5f2823d272b23ddc62ac0ab1a16199adc4c8adf97fb423f7e3975f1cbc8",
+        "sha256_in_prefix": "9efbe1e9621fbde7b14a381dbc7d9a028a7ccd3a7e77ebd815a021cad485678b",
+        "size_in_bytes": 346
+      }
+    ],
+    "paths_version": 1
+  },
+  "platform": "win32",
+  "requested_spec": "conda-forge/win-64::reproc==14.2.5.post0=h2466b09_0[md5=c3ca4c18c99a3b9832e11b11af227713]",
+  "sha256": "112dee79da4f55de91f029dd9808f4284bc5e0cf0c4d308d4cec3381bf5bc836",
+  "size": 37058,
+  "subdir": "win-64",
+  "timestamp": 1731926140000,
+  "url": "https://conda.anaconda.org/conda-forge/win-64/reproc-14.2.5.post0-h2466b09_0.conda",
+  "version": "14.2.5.post0"
+}

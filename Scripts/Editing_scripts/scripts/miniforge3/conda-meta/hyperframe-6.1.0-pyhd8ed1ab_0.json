@@ -1,0 +1,69 @@
+{
+  "build": "pyhd8ed1ab_0",
+  "build_number": 0,
+  "channel": "https://conda.anaconda.org/conda-forge/win-64",
+  "constrains": [],
+  "depends": [
+    "python >=3.9"
+  ],
+  "extracted_package_dir": "C:\\miniforge3\\pkgs\\hyperframe-6.1.0-pyhd8ed1ab_0",
+  "files": [
+    "Lib/site-packages/hyperframe-6.1.0.dist-info/INSTALLER",
+    "Lib/site-packages/hyperframe-6.1.0.dist-info/LICENSE",
+    "Lib/site-packages/hyperframe-6.1.0.dist-info/METADATA",
+    "Lib/site-packages/hyperframe-6.1.0.dist-info/RECORD",
+    "Lib/site-packages/hyperframe-6.1.0.dist-info/REQUESTED",
+    "Lib/site-packages/hyperframe-6.1.0.dist-info/WHEEL",
+    "Lib/site-packages/hyperframe-6.1.0.dist-info/direct_url.json",
+    "Lib/site-packages/hyperframe-6.1.0.dist-info/top_level.txt",
+    "Lib/site-packages/hyperframe/__init__.py",
+    "Lib/site-packages/hyperframe/exceptions.py",
+    "Lib/site-packages/hyperframe/flags.py",
+    "Lib/site-packages/hyperframe/frame.py",
+    "Lib/site-packages/hyperframe/py.typed",
+    "Lib/site-packages/hyperframe/__pycache__/__init__.cpython-312.pyc",
+    "Lib/site-packages/hyperframe/__pycache__/exceptions.cpython-312.pyc",
+    "Lib/site-packages/hyperframe/__pycache__/flags.cpython-312.pyc",
+    "Lib/site-packages/hyperframe/__pycache__/frame.cpython-312.pyc"
+  ],
+  "fn": "hyperframe-6.1.0-pyhd8ed1ab_0.conda",
+  "license": "MIT",
+  "license_family": "MIT",
+  "link": {
+    "source": "C:\\miniforge3\\pkgs\\hyperframe-6.1.0-pyhd8ed1ab_0",
+    "type": 1
+  },
+  "md5": "8e6923fc12f1fe8f8c4e5c9f343256ac",
+  "name": "hyperframe",
+  "noarch": "python",
+  "package_tarball_full_path": "C:\\miniforge3\\pkgs\\hyperframe-6.1.0-pyhd8ed1ab_0.conda",
+  "package_type": "noarch_python",
+  "paths_data": {
+    "paths": [
+      {
+        "_path": "Lib/site-packages/hyperframe/__pycache__/__init__.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/hyperframe/__pycache__/exceptions.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/hyperframe/__pycache__/flags.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/hyperframe/__pycache__/frame.cpython-312.pyc",
+        "path_type": "pyc_file"
+      }
+    ],
+    "paths_version": 1
+  },
+  "requested_spec": "conda-forge/noarch::hyperframe==6.1.0=pyhd8ed1ab_0[md5=8e6923fc12f1fe8f8c4e5c9f343256ac]",
+  "sha256": "77af6f5fe8b62ca07d09ac60127a30d9069fdc3c68d6b256754d0ffb1f7779f8",
+  "size": 17397,
+  "subdir": "noarch",
+  "timestamp": 1737618427000,
+  "url": "https://conda.anaconda.org/conda-forge/noarch/hyperframe-6.1.0-pyhd8ed1ab_0.conda",
+  "version": "6.1.0"
+}
