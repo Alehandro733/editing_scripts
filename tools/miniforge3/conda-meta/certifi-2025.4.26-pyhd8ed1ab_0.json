@@ -1,0 +1,63 @@
+{
+  "build": "pyhd8ed1ab_0",
+  "build_number": 0,
+  "channel": "https://conda.anaconda.org/conda-forge/win-64",
+  "constrains": [],
+  "depends": [
+    "python >=3.9"
+  ],
+  "extracted_package_dir": "C:\\miniforge3\\pkgs\\certifi-2025.4.26-pyhd8ed1ab_0",
+  "files": [
+    "Lib/site-packages/certifi-2025.4.26.dist-info/INSTALLER",
+    "Lib/site-packages/certifi-2025.4.26.dist-info/LICENSE",
+    "Lib/site-packages/certifi-2025.4.26.dist-info/METADATA",
+    "Lib/site-packages/certifi-2025.4.26.dist-info/RECORD",
+    "Lib/site-packages/certifi-2025.4.26.dist-info/REQUESTED",
+    "Lib/site-packages/certifi-2025.4.26.dist-info/WHEEL",
+    "Lib/site-packages/certifi-2025.4.26.dist-info/direct_url.json",
+    "Lib/site-packages/certifi-2025.4.26.dist-info/top_level.txt",
+    "Lib/site-packages/certifi/__init__.py",
+    "Lib/site-packages/certifi/__main__.py",
+    "Lib/site-packages/certifi/cacert.pem",
+    "Lib/site-packages/certifi/core.py",
+    "Lib/site-packages/certifi/py.typed",
+    "Lib/site-packages/certifi/__pycache__/__init__.cpython-312.pyc",
+    "Lib/site-packages/certifi/__pycache__/__main__.cpython-312.pyc",
+    "Lib/site-packages/certifi/__pycache__/core.cpython-312.pyc"
+  ],
+  "fn": "certifi-2025.4.26-pyhd8ed1ab_0.conda",
+  "license": "ISC",
+  "link": {
+    "source": "C:\\miniforge3\\pkgs\\certifi-2025.4.26-pyhd8ed1ab_0",
+    "type": 1
+  },
+  "md5": "c33eeaaa33f45031be34cda513df39b6",
+  "name": "certifi",
+  "noarch": "python",
+  "package_tarball_full_path": "C:\\miniforge3\\pkgs\\certifi-2025.4.26-pyhd8ed1ab_0.conda",
+  "package_type": "noarch_python",
+  "paths_data": {
+    "paths": [
+      {
+        "_path": "Lib/site-packages/certifi/__pycache__/__init__.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/certifi/__pycache__/__main__.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/certifi/__pycache__/core.cpython-312.pyc",
+        "path_type": "pyc_file"
+      }
+    ],
+    "paths_version": 1
+  },
+  "requested_spec": "conda-forge/noarch::certifi==2025.4.26=pyhd8ed1ab_0[md5=c33eeaaa33f45031be34cda513df39b6]",
+  "sha256": "52aa837642fd851b3f7ad3b1f66afc5366d133c1d452323f786b0378a391915c",
+  "size": 157200,
+  "subdir": "noarch",
+  "timestamp": 1746569627000,
+  "url": "https://conda.anaconda.org/conda-forge/noarch/certifi-2025.4.26-pyhd8ed1ab_0.conda",
+  "version": "2025.4.26"
+}

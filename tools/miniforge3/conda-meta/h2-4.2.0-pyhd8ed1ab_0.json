@@ -1,0 +1,113 @@
+{
+  "build": "pyhd8ed1ab_0",
+  "build_number": 0,
+  "channel": "https://conda.anaconda.org/conda-forge/win-64",
+  "constrains": [],
+  "depends": [
+    "hpack >=4.1,<5",
+    "hyperframe >=6.1,<7",
+    "python >=3.9"
+  ],
+  "extracted_package_dir": "C:\\miniforge3\\pkgs\\h2-4.2.0-pyhd8ed1ab_0",
+  "files": [
+    "Lib/site-packages/h2-4.2.0.dist-info/INSTALLER",
+    "Lib/site-packages/h2-4.2.0.dist-info/LICENSE",
+    "Lib/site-packages/h2-4.2.0.dist-info/METADATA",
+    "Lib/site-packages/h2-4.2.0.dist-info/RECORD",
+    "Lib/site-packages/h2-4.2.0.dist-info/REQUESTED",
+    "Lib/site-packages/h2-4.2.0.dist-info/WHEEL",
+    "Lib/site-packages/h2-4.2.0.dist-info/direct_url.json",
+    "Lib/site-packages/h2-4.2.0.dist-info/top_level.txt",
+    "Lib/site-packages/h2/__init__.py",
+    "Lib/site-packages/h2/config.py",
+    "Lib/site-packages/h2/connection.py",
+    "Lib/site-packages/h2/errors.py",
+    "Lib/site-packages/h2/events.py",
+    "Lib/site-packages/h2/exceptions.py",
+    "Lib/site-packages/h2/frame_buffer.py",
+    "Lib/site-packages/h2/py.typed",
+    "Lib/site-packages/h2/settings.py",
+    "Lib/site-packages/h2/stream.py",
+    "Lib/site-packages/h2/utilities.py",
+    "Lib/site-packages/h2/windows.py",
+    "Lib/site-packages/h2/__pycache__/__init__.cpython-312.pyc",
+    "Lib/site-packages/h2/__pycache__/config.cpython-312.pyc",
+    "Lib/site-packages/h2/__pycache__/connection.cpython-312.pyc",
+    "Lib/site-packages/h2/__pycache__/errors.cpython-312.pyc",
+    "Lib/site-packages/h2/__pycache__/events.cpython-312.pyc",
+    "Lib/site-packages/h2/__pycache__/exceptions.cpython-312.pyc",
+    "Lib/site-packages/h2/__pycache__/frame_buffer.cpython-312.pyc",
+    "Lib/site-packages/h2/__pycache__/settings.cpython-312.pyc",
+    "Lib/site-packages/h2/__pycache__/stream.cpython-312.pyc",
+    "Lib/site-packages/h2/__pycache__/utilities.cpython-312.pyc",
+    "Lib/site-packages/h2/__pycache__/windows.cpython-312.pyc"
+  ],
+  "fn": "h2-4.2.0-pyhd8ed1ab_0.conda",
+  "license": "MIT",
+  "license_family": "MIT",
+  "link": {
+    "source": "C:\\miniforge3\\pkgs\\h2-4.2.0-pyhd8ed1ab_0",
+    "type": 1
+  },
+  "md5": "b4754fb1bdcb70c8fd54f918301582c6",
+  "name": "h2",
+  "noarch": "python",
+  "package_tarball_full_path": "C:\\miniforge3\\pkgs\\h2-4.2.0-pyhd8ed1ab_0.conda",
+  "package_type": "noarch_python",
+  "paths_data": {
+    "paths": [
+      {
+        "_path": "Lib/site-packages/h2/__pycache__/__init__.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/h2/__pycache__/config.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/h2/__pycache__/connection.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/h2/__pycache__/errors.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/h2/__pycache__/events.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/h2/__pycache__/exceptions.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/h2/__pycache__/frame_buffer.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/h2/__pycache__/settings.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/h2/__pycache__/stream.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/h2/__pycache__/utilities.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/h2/__pycache__/windows.cpython-312.pyc",
+        "path_type": "pyc_file"
+      }
+    ],
+    "paths_version": 1
+  },
+  "requested_spec": "conda-forge/noarch::h2==4.2.0=pyhd8ed1ab_0[md5=b4754fb1bdcb70c8fd54f918301582c6]",
+  "sha256": "0aa1cdc67a9fe75ea95b5644b734a756200d6ec9d0dff66530aec3d1c1e9df75",
+  "size": 53888,
+  "subdir": "noarch",
+  "timestamp": 1738578623000,
+  "url": "https://conda.anaconda.org/conda-forge/noarch/h2-4.2.0-pyhd8ed1ab_0.conda",
+  "version": "4.2.0"
+}

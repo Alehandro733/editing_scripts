@@ -1,0 +1,8 @@
+libdir=C:/miniforge3/Library/lib
+includedir=C:/miniforge3/Library/include
+
+Name: libsolv
+Description: Library for solving packages
+Version: 0.7.32
+Libs: -L${libdir} -lsolv
+Cflags: -I${includedir}

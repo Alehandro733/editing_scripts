@@ -1,0 +1,48 @@
+{
+  "arch": "x86_64",
+  "build": "py312h4389bb4_1",
+  "build_number": 1,
+  "channel": "https://conda.anaconda.org/conda-forge/win-64",
+  "constrains": [],
+  "depends": [
+    "python >=3.12,<3.13.0a0",
+    "python_abi 3.12.* *_cp312",
+    "ucrt >=10.0.20348.0",
+    "vc >=14.2,<15",
+    "vc14_runtime >=14.29.30139"
+  ],
+  "extracted_package_dir": "C:\\miniforge3\\pkgs\\ruamel.yaml.clib-0.2.8-py312h4389bb4_1",
+  "files": [
+    "Lib/site-packages/_ruamel_yaml.cp312-win_amd64.pyd",
+    "Lib/site-packages/ruamel.yaml.clib-0.2.8.dist-info/INSTALLER",
+    "Lib/site-packages/ruamel.yaml.clib-0.2.8.dist-info/LICENSE",
+    "Lib/site-packages/ruamel.yaml.clib-0.2.8.dist-info/METADATA",
+    "Lib/site-packages/ruamel.yaml.clib-0.2.8.dist-info/RECORD",
+    "Lib/site-packages/ruamel.yaml.clib-0.2.8.dist-info/REQUESTED",
+    "Lib/site-packages/ruamel.yaml.clib-0.2.8.dist-info/WHEEL",
+    "Lib/site-packages/ruamel.yaml.clib-0.2.8.dist-info/direct_url.json",
+    "Lib/site-packages/ruamel.yaml.clib-0.2.8.dist-info/top_level.txt"
+  ],
+  "fn": "ruamel.yaml.clib-0.2.8-py312h4389bb4_1.conda",
+  "license": "MIT",
+  "license_family": "MIT",
+  "link": {
+    "source": "C:\\miniforge3\\pkgs\\ruamel.yaml.clib-0.2.8-py312h4389bb4_1",
+    "type": 1
+  },
+  "md5": "5758e70a80936d7527f70196685c6695",
+  "name": "ruamel.yaml.clib",
+  "package_tarball_full_path": "C:\\miniforge3\\pkgs\\ruamel.yaml.clib-0.2.8-py312h4389bb4_1.conda",
+  "paths_data": {
+    "paths": [],
+    "paths_version": 1
+  },
+  "platform": "win32",
+  "requested_spec": "conda-forge/win-64::ruamel.yaml.clib==0.2.8=py312h4389bb4_1[md5=5758e70a80936d7527f70196685c6695]",
+  "sha256": "d5583406ea6d17391294da0a6dadf9a22aad732d1f658f2d6d12fc50b968c0fa",
+  "size": 108926,
+  "subdir": "win-64",
+  "timestamp": 1728725024000,
+  "url": "https://conda.anaconda.org/conda-forge/win-64/ruamel.yaml.clib-0.2.8-py312h4389bb4_1.conda",
+  "version": "0.2.8"
+}

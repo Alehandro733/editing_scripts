@@ -1,5 +1,16 @@
-папку "MyPanelScript" из архива поместить по пути C:\Program Files (x86)\Common Files\Adobe\CEP\extensions
-Получится так C:\Program Files (x86)\Common Files\Adobe\CEP\extensions\MyPanelScript
+Установка:
 
-Запустить reg файл csxs
+Вариант 1:
+	Запустить installCEP_symlink.bat 
+	-Удалится папка по пути "C:\Program Files (x86)\Common Files\Adobe\CEP\extensions\MyPanelScript"
+	-Будет создан symlink по пути "C:\Program Files (x86)\Common Files\Adobe\CEP\extensions\" на папку "MyPanelScript" в этой дерриктории (ссылка на папку)
+
+или
+Вариант 2:
+	В ручную, папку "MyPanelScript" из архива поместить по пути C:\Program Files (x86)\Common Files\Adobe\CEP\extensions
+	Получится так C:\Program Files (x86)\Common Files\Adobe\CEP\extensions\MyPanelScript
+	Запустить reg файл csxs
+
+
+
 

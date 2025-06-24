@@ -1,0 +1,11 @@
+prefix=C:/miniforge3/Library
+exec_prefix=C:/miniforge3/Library
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: fmt
+Description: A modern formatting library
+Version: 11.1.4
+Libs: -L${libdir} -lfmt
+Cflags: -I${includedir}
+

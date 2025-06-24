@@ -1,0 +1,50 @@
+{
+  "build": "pyh7428d3b_8",
+  "build_number": 8,
+  "channel": "https://conda.anaconda.org/conda-forge/win-64",
+  "constrains": [],
+  "depends": [
+    "__win",
+    "python >=3.9"
+  ],
+  "extracted_package_dir": "C:\\miniforge3\\pkgs\\win_inet_pton-1.1.0-pyh7428d3b_8",
+  "files": [
+    "Lib/site-packages/win_inet_pton-1.1.0.dist-info/INSTALLER",
+    "Lib/site-packages/win_inet_pton-1.1.0.dist-info/LICENSE",
+    "Lib/site-packages/win_inet_pton-1.1.0.dist-info/METADATA",
+    "Lib/site-packages/win_inet_pton-1.1.0.dist-info/RECORD",
+    "Lib/site-packages/win_inet_pton-1.1.0.dist-info/REQUESTED",
+    "Lib/site-packages/win_inet_pton-1.1.0.dist-info/WHEEL",
+    "Lib/site-packages/win_inet_pton-1.1.0.dist-info/direct_url.json",
+    "Lib/site-packages/win_inet_pton-1.1.0.dist-info/top_level.txt",
+    "Lib/site-packages/win_inet_pton.py",
+    "Lib/site-packages/__pycache__/win_inet_pton.cpython-312.pyc"
+  ],
+  "fn": "win_inet_pton-1.1.0-pyh7428d3b_8.conda",
+  "license": "LicenseRef-Public-Domain",
+  "link": {
+    "source": "C:\\miniforge3\\pkgs\\win_inet_pton-1.1.0-pyh7428d3b_8",
+    "type": 1
+  },
+  "md5": "46e441ba871f524e2b067929da3051c2",
+  "name": "win_inet_pton",
+  "noarch": "python",
+  "package_tarball_full_path": "C:\\miniforge3\\pkgs\\win_inet_pton-1.1.0-pyh7428d3b_8.conda",
+  "package_type": "noarch_python",
+  "paths_data": {
+    "paths": [
+      {
+        "_path": "Lib/site-packages/__pycache__/win_inet_pton.cpython-312.pyc",
+        "path_type": "pyc_file"
+      }
+    ],
+    "paths_version": 1
+  },
+  "requested_spec": "conda-forge/noarch::win_inet_pton==1.1.0=pyh7428d3b_8[md5=46e441ba871f524e2b067929da3051c2]",
+  "sha256": "93807369ab91f230cf9e6e2a237eaa812492fe00face5b38068735858fba954f",
+  "size": 9555,
+  "subdir": "noarch",
+  "timestamp": 1733130678000,
+  "url": "https://conda.anaconda.org/conda-forge/noarch/win_inet_pton-1.1.0-pyh7428d3b_8.conda",
+  "version": "1.1.0"
+}

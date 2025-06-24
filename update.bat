@@ -3,10 +3,10 @@ chcp 65001 >nul
 setlocal enabledelayedexpansion
 
 :: === Настройки ===
-set GIT_BIN=%~dp0mingit\cmd\git.exe
+set GIT_BIN=%~dp0tools\minigit\cmd\git.exe
 set REPO_DIR=%~dp0editing_scripts
 set REPO_URL=https://github.com/Alehandro733/editing_scripts.git
-set BRANCH=master
+set BRANCH=dev
 
 echo === Используем Git: %GIT_BIN%
 echo === Целевая папка: %REPO_DIR%
