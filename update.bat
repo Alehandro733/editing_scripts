@@ -2,13 +2,12 @@
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 
-:: === Параметры: исправьте URL и ветку на свои
+:: === Параметры:
 set "GIT_BIN=%~dp0tools\minigit\cmd\git.exe"
 set "REPO_URL=https://github.com/Alehandro733/editing_scripts.git"
 set "BRANCH=dev"
 set "TMP_NAME=_temp_repo"
 
-:: Переходим в папку скрипта
 cd /d "%~dp0"
 
 :: Если нет .git — первичная инициализация
