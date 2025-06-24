@@ -1,0 +1,1 @@
+python mfa_make_srt.py --json = fr_sub.json --text = fr.txt --output = fr_subs_animated.srt
