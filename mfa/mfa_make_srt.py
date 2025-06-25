@@ -269,25 +269,29 @@ def write_srt(txt_lines, txt_word_spans, word_timings, block_starts, output_path
                 li_span, start_pos, end_pos = txt_word_spans[word_idx]
                 assert li_span == li
                 
-                # Определяем конец выделенной области
-                if i < n - 1:
-                    next_idx = word_indices[i+1]
-                    next_start_pos = txt_word_spans[next_idx][1]
+                # Определяем границы сегмента для выделения
+                if i == 0:
+                    seg_start = 0  # Для первого слова в строке - с начала строки
                 else:
-                    next_start_pos = len(line)
+                    seg_start = start_pos
                 
-                # Выделяем слово и все символы до следующего слова
+                if i < n - 1:
+                    next_start_pos = txt_word_spans[word_indices[i+1]][1]
+                    seg_end = next_start_pos
+                else:
+                    seg_end = len(line)  # Для последнего слова - до конца строки
+                
+                # Формируем строку с выделением
                 highlighted_line = (
-                    line[:start_pos] +
+                    line[:seg_start] +
                     '<font color=#2DE471FF>' +
-                    line[start_pos:next_start_pos].rstrip(' ') +
+                    line[seg_start:seg_end] +
                     '</font>' +
-                    line[next_start_pos:]
+                    line[seg_end:]
                 )
                 
                 # Рассчитываем тайминги
                 if i == 0 and block_starts and li < len(block_starts):
-                    # Для первого слова в блоке используем тайминг из SRT
                     start_time = block_starts[li]
                 else:
                     start_time = word_timings[word_idx]['start']
