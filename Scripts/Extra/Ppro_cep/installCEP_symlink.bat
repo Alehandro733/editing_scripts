@@ -1,78 +1,51 @@
 @echo off
-setlocal
+setlocal EnableExtensions EnableDelayedExpansion
 
-REM Check if PowerShell is available
-where powershell >nul 2>&1
-if %errorlevel% EQU 0 (
-    set "USE_PS=1"
-) else (
-    set "USE_PS=0"
-)
-
-REM Check for administrator privileges
-openfiles >nul 2>&1
+REM — Administrator rights check
+net session >nul 2>&1
 if %errorlevel% NEQ 0 (
-    if %USE_PS%==1 (
-        powershell -Command "Write-Host 'Please run this script as Administrator.' -ForegroundColor Red"
-    ) else (
-        echo Please run this script as Administrator.
-    )
-    set /p dummy=Press Enter to exit...
-    exit /b
+    echo Error: you need to run the script as Administrator.
+    pause
+    exit /b 1
 )
 
-REM Set source and target paths
-set "SOURCE=%~dp0Scripts\Extra\Ppro_cep\MyPanelScript"
-set "TARGET=C:\Program Files (x86)\Common Files\Adobe\CEP\extensions\MyPanelScript"
-set "REGPATH=%~dp0Scripts\Extra\Ppro_cep"
+REM — Paths
+set "EXT_DIR=C:\Program Files (x86)\Common Files\Adobe\CEP\extensions"
+set "LINK_NAME=MyPanelScript"
+set "TARGET=%EXT_DIR%\%LINK_NAME%"
+set "SOURCE=%~dp0MyPanelScript"
+set "REGFILE=%~dp0csxs.reg"
 
-REM Remove existing target if it exists
+REM — Remove old folder or symlink if it exists
 if exist "%TARGET%" (
-    echo Checking existing target: "%TARGET%"
+    echo Removing existing "%TARGET%"...
     dir /AL "%TARGET%" >nul 2>&1
     if %errorlevel% EQU 0 (
-        echo Symbolic link found. Deleting...
+        echo  Symlink found, rmdir "%TARGET%"
         rmdir "%TARGET%"
     ) else (
-        echo Folder found (not a symlink). Deleting...
+        echo  Regular folder found, rmdir /S /Q "%TARGET%"
         rmdir /S /Q "%TARGET%"
     )
 )
 
-REM Create symbolic link
-echo Creating symbolic link...
+REM — Create symlink
+echo Creating symlink "%TARGET%" -> "%SOURCE%"...
 mklink /D "%TARGET%" "%SOURCE%"
 if %errorlevel% NEQ 0 (
-    if %USE_PS%==1 (
-        powershell -Command "Write-Host 'Failed to create symbolic link.' -ForegroundColor Red"
-    ) else (
-        echo Failed to create symbolic link.
-    )
-    set /p dummy=Press Enter to exit...
-    exit /b
+    echo Error: failed to create symlink.
+    pause
+    exit /b 1
 )
 
-if %USE_PS%==1 (
-    powershell -Command "Write-Host 'Symbolic link created successfully.' -ForegroundColor Green"
-) else (
-    echo Symbolic link created successfully.
+REM — Registry import
+echo Importing registry from "%REGFILE%"...
+reg import "%REGFILE%"
+if %errorlevel% NEQ 0 (
+    echo Error: failed to import registry.
+    pause
+    exit /b 1
 )
 
-REM Import registry file
-echo Importing registry entries...
-reg import "%REGPATH%\csxs.reg"
-if %errorlevel% EQU 0 (
-    if %USE_PS%==1 (
-        powershell -Command "Write-Host 'Registry entries imported successfully.' -ForegroundColor Green"
-    ) else (
-        echo Registry entries imported successfully.
-    )
-) else (
-    if %USE_PS%==1 (
-        powershell -Command "Write-Host 'Failed to import registry file.' -ForegroundColor Red"
-    ) else (
-        echo Failed to import registry file.
-    )
-)
-
+echo Done!
 pause
