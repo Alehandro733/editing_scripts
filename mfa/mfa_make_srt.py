@@ -255,57 +255,75 @@ def write_srt(txt_lines, txt_word_spans, word_timings, block_starts, output_path
             lines_words[li] = []
         lines_words[li].append(idx)
     
-    with open(output_path, 'w', encoding='utf-8') as f:
-        sub_idx = 1
-        for li, line in enumerate(txt_lines):
-            if li not in lines_words:
-                continue
-                
-            word_indices = lines_words[li]
-            n = len(word_indices)
+    # Собираем все субтитры в список
+    subs_list = []
+    sub_idx = 1
+
+    for li, line in enumerate(txt_lines):
+        if li not in lines_words:
+            continue
             
-            # Для каждого слова в строке создаем отдельный блок
-            for i, word_idx in enumerate(word_indices):
-                li_span, start_pos, end_pos = txt_word_spans[word_idx]
-                assert li_span == li
-                
-                # Определяем границы сегмента для выделения
-                if i == 0:
-                    seg_start = 0  # Для первого слова в строке - с начала строки
-                else:
-                    seg_start = start_pos
-                
-                if i < n - 1:
-                    next_start_pos = txt_word_spans[word_indices[i+1]][1]
-                    seg_end = next_start_pos
-                else:
-                    seg_end = len(line)  # Для последнего слова - до конца строки
-                
-                # Формируем строку с выделением
-                highlighted_line = (
-                    line[:seg_start] +
-                    '<font color=#2DE471FF>' +
-                    line[seg_start:seg_end] +
-                    '</font>' +
-                    line[seg_end:]
-                )
-                
-                # Рассчитываем тайминги
-                if i == 0 and block_starts and li < len(block_starts):
-                    start_time = block_starts[li]
-                else:
-                    start_time = word_timings[word_idx]['start']
-                
-                if i < n - 1:
-                    end_time = word_timings[word_indices[i+1]]['start']
-                else:
-                    end_time = word_timings[word_idx]['end']
-                
-                # Записываем блок SRT
-                f.write(f"{sub_idx}\n")
-                f.write(f"{format_timestamp(start_time)} --> {format_timestamp(end_time)}\n")
-                f.write(f"{highlighted_line}\n\n")
-                sub_idx += 1
+        word_indices = lines_words[li]
+        n = len(word_indices)
+        
+        # Для каждого слова в строке создаем отдельный блок
+        for i, word_idx in enumerate(word_indices):
+            li_span, start_pos, end_pos = txt_word_spans[word_idx]
+            assert li_span == li
+            
+            # Определяем границы сегмента для выделения
+            if i == 0:
+                seg_start = 0  # Для первого слова в строке - с начала строки
+            else:
+                seg_start = start_pos
+            
+            if i < n - 1:
+                next_start_pos = txt_word_spans[word_indices[i+1]][1]
+                seg_end = next_start_pos
+            else:
+                seg_end = len(line)  # Для последнего слова - до конца строки
+            
+            # Формируем строку с выделением
+            highlighted_line = (
+                line[:seg_start] +
+                '<font color=#2DE471FF>' +
+                line[seg_start:seg_end] +
+                '</font>' +
+                line[seg_end:]
+            )
+            
+            # Рассчитываем тайминги
+            if i == 0 and block_starts and li < len(block_starts):
+                start_time = block_starts[li]
+            else:
+                start_time = word_timings[word_idx]['start']
+            
+            # Временной конец пока оставляем как есть
+            if i < n - 1:
+                end_time = word_timings[word_indices[i+1]]['start']
+            else:
+                end_time = word_timings[word_idx]['end']
+            
+            # Добавляем субтитр в список
+            subs_list.append({
+                'index': sub_idx,
+                'start': start_time,
+                'end': end_time,
+                'text': highlighted_line
+            })
+            sub_idx += 1
+
+    # Корректируем времена окончания
+    for i in range(len(subs_list) - 1):
+        # Устанавливаем конец текущего = начало следующего
+        subs_list[i]['end'] = subs_list[i+1]['start']
+
+    # Записываем в файл
+    with open(output_path, 'w', encoding='utf-8') as f:
+        for sub in subs_list:
+            f.write(f"{sub['index']}\n")
+            f.write(f"{format_timestamp(sub['start'])} --> {format_timestamp(sub['end'])}\n")
+            f.write(f"{sub['text']}\n\n")
 
     print(f"SRT файл создан: {output_path}")
 
