@@ -41,7 +41,8 @@ if not exist ".git" (
         echo Ошибка: не удалось переключиться на ветку %BRANCH% & pause & goto :eof
     )
     "%GIT_BIN%" reset --hard origin/%BRANCH%
-    "%GIT_BIN%" clean -fd
+    :: Удалить все не ослеживаемые файлы из репозитория:
+    ::  "%GIT_BIN%" clean -fd
     echo Обновление завершено.
 )
 
