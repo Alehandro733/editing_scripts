@@ -4,13 +4,14 @@ chcp 65001 >nul
 
 cd /d "%~dp0"
 
+REM — Задаём цвета по умолчанию
+set "base_color=0000FF"
+set "highlight_color=FFE471"
+
 REM — Задать путь к файлу run_mfa_wrapper.py. После WRAPPER_PATH= нужно написать абсолютный или относительный путь сохраняя кавычку в конце
-
-REM--------------------------------------------------
-
+REM --------------------------------------------------
 set "WRAPPER_PATH=%~dp0..\..\mfa\run_mfa_wrapper.py"
-
-REM--------------------------------------------------
+REM --------------------------------------------------
 
 if not exist "%WRAPPER_PATH%" (
     echo Ошибка: файл run_mfa_wrapper.py не найден по пути:
@@ -43,12 +44,14 @@ REM — Запрос языка
 set /p lang=Введите код языка (пример: fr, pt, en): 
 
 REM — Запуск
-echo Выполняю: python "%WRAPPER_PATH%" --language %lang% !wav_arg! !text_arg!
-python "%WRAPPER_PATH%" --language %lang% !wav_arg! !text_arg!
+echo Выполняю: python "%WRAPPER_PATH%" --language %lang% --base-color %base_color% --highlight-color %highlight_color% !wav_arg! !text_arg!
+python "%WRAPPER_PATH%" --language %lang% --base-color %base_color% --highlight-color %highlight_color% !wav_arg! !text_arg!
 if errorlevel 1 (
     echo Ошибка при выполнении скрипта.
     pause
     exit /b %errorlevel%
 )
 
+echo Успешно!
+pause
 endlocal
