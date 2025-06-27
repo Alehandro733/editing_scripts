@@ -1,0 +1,142 @@
+{
+  "build": "pyh29332c3_1",
+  "build_number": 1,
+  "channel": "https://conda.anaconda.org/conda-forge/win-64",
+  "constrains": [],
+  "depends": [
+    "python >=3.8",
+    "python"
+  ],
+  "extracted_package_dir": "C:\\miniforge3\\pkgs\\packaging-25.0-pyh29332c3_1",
+  "files": [
+    "Lib/site-packages/packaging/__init__.py",
+    "Lib/site-packages/packaging/_elffile.py",
+    "Lib/site-packages/packaging/_manylinux.py",
+    "Lib/site-packages/packaging/_musllinux.py",
+    "Lib/site-packages/packaging/_parser.py",
+    "Lib/site-packages/packaging/_structures.py",
+    "Lib/site-packages/packaging/_tokenizer.py",
+    "Lib/site-packages/packaging/licenses/__init__.py",
+    "Lib/site-packages/packaging/licenses/_spdx.py",
+    "Lib/site-packages/packaging/markers.py",
+    "Lib/site-packages/packaging/metadata.py",
+    "Lib/site-packages/packaging/py.typed",
+    "Lib/site-packages/packaging/requirements.py",
+    "Lib/site-packages/packaging/specifiers.py",
+    "Lib/site-packages/packaging/tags.py",
+    "Lib/site-packages/packaging/utils.py",
+    "Lib/site-packages/packaging/version.py",
+    "Lib/site-packages/packaging-25.0.dist-info/INSTALLER",
+    "Lib/site-packages/packaging-25.0.dist-info/LICENSE",
+    "Lib/site-packages/packaging-25.0.dist-info/LICENSE.APACHE",
+    "Lib/site-packages/packaging-25.0.dist-info/LICENSE.BSD",
+    "Lib/site-packages/packaging-25.0.dist-info/METADATA",
+    "Lib/site-packages/packaging-25.0.dist-info/RECORD",
+    "Lib/site-packages/packaging-25.0.dist-info/REQUESTED",
+    "Lib/site-packages/packaging-25.0.dist-info/WHEEL",
+    "Lib/site-packages/packaging-25.0.dist-info/direct_url.json",
+    "Lib/site-packages/packaging/__pycache__/__init__.cpython-312.pyc",
+    "Lib/site-packages/packaging/__pycache__/_elffile.cpython-312.pyc",
+    "Lib/site-packages/packaging/__pycache__/_manylinux.cpython-312.pyc",
+    "Lib/site-packages/packaging/__pycache__/_musllinux.cpython-312.pyc",
+    "Lib/site-packages/packaging/__pycache__/_parser.cpython-312.pyc",
+    "Lib/site-packages/packaging/__pycache__/_structures.cpython-312.pyc",
+    "Lib/site-packages/packaging/__pycache__/_tokenizer.cpython-312.pyc",
+    "Lib/site-packages/packaging/licenses/__pycache__/__init__.cpython-312.pyc",
+    "Lib/site-packages/packaging/licenses/__pycache__/_spdx.cpython-312.pyc",
+    "Lib/site-packages/packaging/__pycache__/markers.cpython-312.pyc",
+    "Lib/site-packages/packaging/__pycache__/metadata.cpython-312.pyc",
+    "Lib/site-packages/packaging/__pycache__/requirements.cpython-312.pyc",
+    "Lib/site-packages/packaging/__pycache__/specifiers.cpython-312.pyc",
+    "Lib/site-packages/packaging/__pycache__/tags.cpython-312.pyc",
+    "Lib/site-packages/packaging/__pycache__/utils.cpython-312.pyc",
+    "Lib/site-packages/packaging/__pycache__/version.cpython-312.pyc"
+  ],
+  "fn": "packaging-25.0-pyh29332c3_1.conda",
+  "license": "Apache-2.0",
+  "link": {
+    "source": "C:\\miniforge3\\pkgs\\packaging-25.0-pyh29332c3_1",
+    "type": 1
+  },
+  "md5": "58335b26c38bf4a20f399384c33cbcf9",
+  "name": "packaging",
+  "noarch": "python",
+  "package_tarball_full_path": "C:\\miniforge3\\pkgs\\packaging-25.0-pyh29332c3_1.conda",
+  "package_type": "noarch_python",
+  "paths_data": {
+    "paths": [
+      {
+        "_path": "Lib/site-packages/packaging/__pycache__/__init__.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/packaging/__pycache__/_elffile.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/packaging/__pycache__/_manylinux.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/packaging/__pycache__/_musllinux.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/packaging/__pycache__/_parser.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/packaging/__pycache__/_structures.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/packaging/__pycache__/_tokenizer.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/packaging/licenses/__pycache__/__init__.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/packaging/licenses/__pycache__/_spdx.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/packaging/__pycache__/markers.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/packaging/__pycache__/metadata.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/packaging/__pycache__/requirements.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/packaging/__pycache__/specifiers.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/packaging/__pycache__/tags.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/packaging/__pycache__/utils.cpython-312.pyc",
+        "path_type": "pyc_file"
+      },
+      {
+        "_path": "Lib/site-packages/packaging/__pycache__/version.cpython-312.pyc",
+        "path_type": "pyc_file"
+      }
+    ],
+    "paths_version": 1
+  },
+  "requested_spec": "conda-forge/noarch::packaging==25.0=pyh29332c3_1[md5=58335b26c38bf4a20f399384c33cbcf9]",
+  "sha256": "289861ed0c13a15d7bbb408796af4de72c2fe67e2bcb0de98f4c3fce259d7991",
+  "size": 62477,
+  "subdir": "noarch",
+  "timestamp": 1745345660000,
+  "url": "https://conda.anaconda.org/conda-forge/noarch/packaging-25.0-pyh29332c3_1.conda",
+  "version": "25.0"
+}

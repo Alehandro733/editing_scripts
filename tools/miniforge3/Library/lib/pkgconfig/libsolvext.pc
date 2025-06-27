@@ -1,0 +1,9 @@
+libdir=C:/miniforge3/Library/lib
+includedir=C:/miniforge3/Library/include
+
+Name: libsolvext
+Description: Library for reading repositories
+Version: 0.7.32
+Requires: libsolv
+Libs: -L${libdir} -lsolvext
+Cflags: -I${includedir}

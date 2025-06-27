@@ -1,0 +1,68 @@
+{
+  "arch": "x86_64",
+  "build": "h5f12afc_1",
+  "build_number": 1,
+  "channel": "https://conda.anaconda.org/conda-forge/win-64",
+  "constrains": [],
+  "depends": [
+    "ucrt >=10.0.20348.0",
+    "vc >=14.2,<15",
+    "vc14_runtime >=14.29.30139"
+  ],
+  "extracted_package_dir": "C:\\miniforge3\\pkgs\\fmt-11.1.4-h5f12afc_1",
+  "files": [
+    "Library/bin/fmt.dll",
+    "Library/include/fmt/args.h",
+    "Library/include/fmt/base.h",
+    "Library/include/fmt/chrono.h",
+    "Library/include/fmt/color.h",
+    "Library/include/fmt/compile.h",
+    "Library/include/fmt/core.h",
+    "Library/include/fmt/format-inl.h",
+    "Library/include/fmt/format.h",
+    "Library/include/fmt/os.h",
+    "Library/include/fmt/ostream.h",
+    "Library/include/fmt/printf.h",
+    "Library/include/fmt/ranges.h",
+    "Library/include/fmt/std.h",
+    "Library/include/fmt/xchar.h",
+    "Library/lib/cmake/fmt/fmt-config-version.cmake",
+    "Library/lib/cmake/fmt/fmt-config.cmake",
+    "Library/lib/cmake/fmt/fmt-targets-release.cmake",
+    "Library/lib/cmake/fmt/fmt-targets.cmake",
+    "Library/lib/fmt.lib",
+    "Library/lib/pkgconfig/fmt.pc"
+  ],
+  "fn": "fmt-11.1.4-h5f12afc_1.conda",
+  "license": "MIT",
+  "license_family": "MIT",
+  "link": {
+    "source": "C:\\miniforge3\\pkgs\\fmt-11.1.4-h5f12afc_1",
+    "type": 1
+  },
+  "md5": "65be2289e596e757fc03a5383072a2e7",
+  "name": "fmt",
+  "package_tarball_full_path": "C:\\miniforge3\\pkgs\\fmt-11.1.4-h5f12afc_1.conda",
+  "paths_data": {
+    "paths": [
+      {
+        "_path": "Library/lib/pkgconfig/fmt.pc",
+        "file_mode": "text",
+        "path_type": "hardlink",
+        "prefix_placeholder": "D:/bld/fmt_1742833178966/_h_env",
+        "sha256": "8793c7ecdbbbe13a149da2aa3b1c0b0e529852b3074e496b88a6122c2e476899",
+        "sha256_in_prefix": "ee846af99aef8fae0ec547a498e7c903c544d6a566c9b5f4db7172860f9f1881",
+        "size_in_bytes": 282
+      }
+    ],
+    "paths_version": 1
+  },
+  "platform": "win32",
+  "requested_spec": "conda-forge/win-64::fmt==11.1.4=h5f12afc_1[md5=65be2289e596e757fc03a5383072a2e7]",
+  "sha256": "fd88cd4796572d649da4d249ffb91bd387558c75ab14ad344b7ac45f714079b6",
+  "size": 184746,
+  "subdir": "win-64",
+  "timestamp": 1742833874000,
+  "url": "https://conda.anaconda.org/conda-forge/win-64/fmt-11.1.4-h5f12afc_1.conda",
+  "version": "11.1.4"
+}
