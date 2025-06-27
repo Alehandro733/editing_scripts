@@ -178,6 +178,23 @@ def match_one(txt_idx, json_idx, txt_words, json_entries_filtered, json_entries_
         return False, json_idx + 1, None, None, "error", txt_idx + 1
 
 def match_timings(txt_words, json_entries_filtered, json_entries_raw, log_path: Path):
+    # # ——— DEBUG: пишем CSV с тремя колонками, по одной строке на элемент ———
+    # import csv
+    # import json as _json
+
+    # debug_csv = log_path.with_name('debug_match_timings.csv')
+    # n = max(len(txt_words), len(json_entries_filtered), len(json_entries_raw))
+
+    # with open(debug_csv, 'w', encoding='utf-8', newline='') as _f:
+    #     writer = csv.writer(_f)
+    #     writer.writerow(['txt_word', 'json_filtered', 'json_raw'])
+    #     for i in range(n):
+    #         txt = txt_words[i] if i < len(txt_words) else ''
+    #         jf = _json.dumps(json_entries_filtered[i], ensure_ascii=False) if i < len(json_entries_filtered) else ''
+    #         jr = _json.dumps(json_entries_raw[i], ensure_ascii=False)      if i < len(json_entries_raw)      else ''
+    #         writer.writerow([txt, jf, jr])
+    # # ————————————————————————————————————————————————————————————————
+
     max_txt_word_len = max((len(w) for w in txt_words), default=4)
     max_json_word_len = max((len(e['normalized_word']) for e in json_entries_filtered),
                             default=5)

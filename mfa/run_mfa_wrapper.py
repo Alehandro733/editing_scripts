@@ -109,7 +109,7 @@ def main():
         "--highlight-color", args.highlight_color
     ]
 
-    # Запускаем в правильной директории
+
     try:
         subprocess.run(cmd, check=True, cwd=str(SCRIPT_DIR))
     except subprocess.CalledProcessError as e:
