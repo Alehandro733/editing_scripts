@@ -5,7 +5,7 @@ setlocal enabledelayedexpansion
 :: === Параметры:
 set "GIT_BIN=%~dp0tools\minigit\cmd\git.exe"
 set "REPO_URL=https://github.com/Alehandro733/editing_scripts.git"
-set "BRANCH=dev"
+set "BRANCH=master"
 set "TMP_NAME=_temp_repo"
 
 cd /d "%~dp0"
