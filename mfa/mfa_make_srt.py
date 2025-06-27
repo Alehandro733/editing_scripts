@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Скрипт для генерации SRT-субтитров c «караоке-эффектом»
-(принимает на вход TXT или SRT + JSON-тайминги Kaldi/Aeneas и пр.)
+Скрипт для генерации SRT-субтитров c подсветкой караоке
+(принимает на вход TXT или SRT + JSON-тайминги из MFA)
+Можно выбрать базовый цвет и цвет посветки
 """
 
 import argparse
@@ -122,8 +123,7 @@ def parse_input(path: str):
 # СОВПАДЕНИЕ СЛОВ ТЕКСТА И JSON-ТАЙМИНГОВ
 # ---------------------------------------------------------------------------
 
-def match_one(txt_idx, json_idx, txt_words, json_entries_filtered,
-              json_entries_raw, ratio_threshold=0.7):
+def match_one(txt_idx, json_idx, txt_words, json_entries_filtered, json_entries_raw, ratio_threshold=0.7):
 
     if json_idx >= len(json_entries_filtered):
         return False, json_idx, None, None, "error: no more entries", txt_idx
@@ -232,7 +232,7 @@ def match_timings(txt_words, json_entries_filtered, json_entries_raw, log_path: 
                 post_error_written += 1
 
             if error_mode and post_error_written >= 5:
-                sys.exit("Прекращено после ошибки и 5 строк следом.")
+                sys.exit("Прекращено после ошибки и 5 строком следом.")
 
             txt_idx, json_idx = new_txt_idx, new_json_idx
 
@@ -256,8 +256,7 @@ def format_timestamp(seconds: float) -> str:
 # ГЕНЕРАЦИЯ SRT С ДВУМЯ ЦВЕТАМИ
 # ---------------------------------------------------------------------------
 
-def write_srt(txt_lines, txt_word_spans, word_timings, block_starts,
-              output_path, highlight_color, base_color):
+def write_srt(txt_lines, txt_word_spans, word_timings, block_starts, output_path, highlight_color, base_color):
     # группируем слова по строкам
     lines2words = {}
     for idx, (li, si, ei) in enumerate(txt_word_spans):
@@ -287,22 +286,19 @@ def write_srt(txt_lines, txt_word_spans, word_timings, block_starts,
             selected = line[seg_start:seg_end]
             suffix   = line[seg_end:]
 
-            # HTML для выделения
-            hl = f'<font color="{highlight_color}">{selected}</font>'
+            # HTML для выделения (добавляем ‘#’ перед кодом)
+            hl = f'<font color="#{highlight_color}">{selected}</font>'
 
             # собираем итоговую строку
             if i == 0:
-                # первое слово: выделение + суффикс
-                text_html = hl + (f'<font color="{base_color}">{suffix}</font>' if suffix else '')
+                text_html = hl + (f'<font color="#{base_color}">{suffix}</font>' if suffix else '')
             elif i == n_words - 1:
-                # последнее слово: префикс + выделение
-                text_html = (f'<font color="{base_color}">{prefix}</font>' if prefix else '') + hl
+                text_html = (f'<font color="#{base_color}">{prefix}</font>' if prefix else '') + hl
             else:
-                # середина: префикс + выделение + суффикс
                 text_html = (
-                    f'<font color="{base_color}">{prefix}</font>' +
+                    f'<font color="#{base_color}">{prefix}</font>' +
                     hl +
-                    f'<font color="{base_color}">{suffix}</font>'
+                    f'<font color="#{base_color}">{suffix}</font>'
                 )
 
             # тайминги
@@ -340,14 +336,25 @@ def write_srt(txt_lines, txt_word_spans, word_timings, block_starts,
 
 def main():
     ap = argparse.ArgumentParser(description="Генерация караоке-SRT")
-    ap.add_argument('-j', '--json',       required=True, help="JSON c таймингами")
-    ap.add_argument('-t', '--text',       required=True, help="TXT или SRT-транскрипт")
-    ap.add_argument('-o', '--output',     required=True, help="выходной SRT")
-    ap.add_argument('-c', '--color',      default='#2DE471FF',
-                    help="цвет выделения (hex), пример: #2DE471FF")
-    ap.add_argument('-b', '--base-color', default='#FFFFFFFF',
-                    help="цвет основного текста (hex), пример: #FFFFFFFF")
+    ap.add_argument('-j', '--json',     required=True, help="JSON c таймингами")
+    ap.add_argument('-t', '--text',     required=True, help="TXT или SRT-транскрипт")
+    ap.add_argument('-o', '--output',   required=True, help="выходной SRT")
+    ap.add_argument('-c', '--highlight-color',
+                    dest='highlight_color',
+                    default='2DE471',
+                    help="цвет выделения (6 hex-цифр без ‘#’), пример: 2DE471")
+    ap.add_argument('-b', '--base-color',
+                    dest='base_color',
+                    default='FFFFFF',
+                    help="цвет основного текста (6 hex-цифр без ‘#’), пример: FFFFFF")
+
     args = ap.parse_args()
+
+    # проверка, что коды цветов — ровно 6 hex-символов
+    for val, name in ((args.highlight_color, 'highlight_color'),
+                      (args.base_color,     'base_color')):
+        if not re.fullmatch(r'[0-9A-Fa-f]{6}', val):
+            sys.exit(f"Неверный код `{name}`: «{val}». Ожидается 6 hex-символов без ‘#’.")
 
     json_raw, json_filtered = parse_json(args.json)
     txt_lines, txt_words_norm, txt_word_spans, block_starts = parse_input(args.text)
@@ -359,7 +366,7 @@ def main():
     write_srt(
         txt_lines, txt_word_spans, word_timings,
         block_starts, args.output,
-        highlight_color=args.color,
+        highlight_color=args.highlight_color,
         base_color=args.base_color
     )
 
