@@ -43,6 +43,20 @@ if not exist ".git" (
     "%GIT_BIN%" reset --hard origin/%BRANCH%
     :: Удалить все не ослеживаемые файлы из репозитория:
     ::  "%GIT_BIN%" clean -fd
+	
+    :: === Очищаем внутренности tools\miniforge3\pkgs ===
+	if exist "%~dp0tools\miniforge3\pkgs" (
+    echo Очищаю содержимое папки tools\miniforge3\pkgs...
+    :: Удаляем все подкаталоги
+    for /d %%P in ("%~dp0tools\miniforge3\pkgs\*") do (
+        rd /s /q "%%P"
+    )
+    :: Удаляем все файлы
+    del /q "%~dp0tools\miniforge3\pkgs\*.*" 2>nul
+    echo Очистка папки pkgs завершена.
+)	
+
+
     echo Обновление завершено.
 )
 
