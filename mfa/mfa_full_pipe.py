@@ -59,7 +59,7 @@ def main():
         "fr": "french_mfa",
         "en": "english_us_mfa310",
         "ru": "russian_mfa",
-        "pt": "portuguese_mfa"
+        "pt": "portuguese_mfa200a"
     }
 
     if args.language not in lang_map:
