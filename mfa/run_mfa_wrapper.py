@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Обёртка для запуска mfa_full_pipe.py с возможностью
@@ -109,7 +109,7 @@ def main():
         "--highlight-color", args.highlight_color
     ]
 
-    # Запускаем в правильной директории
+
     try:
         subprocess.run(cmd, check=True, cwd=str(SCRIPT_DIR))
     except subprocess.CalledProcessError as e:
