@@ -20,6 +20,17 @@ from typing import List, Tuple, Optional
 # ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# ФОРМАТИРОВАНИЕ ВРЕМЕНИ
+# ---------------------------------------------------------------------------
+
+def format_timestamp(seconds: float) -> str:
+    total_ms = int(round(seconds * 1000))
+    hours, rem_ms = divmod(total_ms, 3600 * 1000)
+    minutes, rem_ms = divmod(rem_ms, 60 * 1000)
+    secs, millis = divmod(rem_ms, 1000)
+    return f"{hours:02}:{minutes:02}:{secs:02},{millis:03}"
+
 def parse_timestamp(timestamp_str: str) -> float:
     """'HH:MM:SS,mmm'  ->  секунды (float)"""
     time_part, millis_part = timestamp_str.strip().split(',')
@@ -49,7 +60,6 @@ def remove_tags(text: str) -> str:
 # ---------------------------------------------------------------------------
 # ПАРСИНГ JSON ТАЙМИНГОВ
 # ---------------------------------------------------------------------------
-
 def parse_json(json_path: str) -> List[dict]:
     with open(json_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
@@ -75,6 +85,9 @@ def tokenize_lines(lines: List[str]) -> Tuple[List[str], List[Tuple[int, int, in
     """
     Превращает список строк в плоский список нормализованных токенов и их спанов.
     Возвращает (words_norm, word_spans), где word_spans — список кортежей (линия, start, end).
+    words_norm и word_spans это по сути одни и те же слова, но представленные в разном виде. Количество индексов - одинаково
+    
+
     """
     token_re = re.compile(r"[A-Za-zÀ-ÖØ-öø-ÿœŒ0-9'’\-]+")
     words_norm: List[str] = []
@@ -92,6 +105,10 @@ def tokenize_lines(lines: List[str]) -> Tuple[List[str], List[Tuple[int, int, in
 # ---------------------------------------------------------------------------
 
 def parse_srt(srt_path: str):
+    """
+    Важно - время из HH:MM:SS,mmm' конвертируется в секунды (float)
+    """
+
     with open(srt_path, 'r', encoding='utf-8') as f:
         content = f.read()
 
@@ -225,6 +242,11 @@ def handle_unk(text: List[str], tok: List[str], i: int, j: int, *, allow_skip: b
 
 def process(text: List[str], tok: List[str], idx: List[int]) -> List[Tuple[Optional[int], Optional[int]]]:
     res: List[Tuple[Optional[int], Optional[int]]] = [(None, None)] * len(text)
+    """
+    получает список слов из parse_srt/txt (text) и список слов-токенов из json (tok). 
+    Находит соответсвия и выдаёт диапазон, который занимает каждое слово из text в tok
+    """
+
     i = j = 0
     while i < len(text):
         if j >= len(tok):
@@ -243,71 +265,172 @@ def process(text: List[str], tok: List[str], idx: List[int]) -> List[Tuple[Optio
     return res
 
 # ---------------------------------------------------------------------------
-# ФОРМАТИРОВАНИЕ ВРЕМЕНИ
-# ---------------------------------------------------------------------------
-
-def format_timestamp(seconds: float) -> str:
-    total_ms = int(round(seconds * 1000))
-    hours, rem_ms = divmod(total_ms, 3600 * 1000)
-    minutes, rem_ms = divmod(rem_ms, 60 * 1000)
-    secs, millis = divmod(rem_ms, 1000)
-    return f"{hours:02}:{minutes:02}:{secs:02},{millis:03}"
-
-# ---------------------------------------------------------------------------
 # ГЕНЕРАЦИЯ SRT С ДВУМЯ ЦВЕТАМИ
 # ---------------------------------------------------------------------------
 
-def write_srt(lines: List[str], spans: List[Tuple[int,int,int]],
-              timings: List[Tuple[float,float]],
+def write_srt(lines, spans, timings,
               starts: Optional[List[float]],
               output_path: str,
               highlight_color: str,
               base_color: str) -> None:
-    lines2words = {}
-    for wi, (li, si, _) in enumerate(spans):
-        lines2words.setdefault(li, []).append(wi)
+    # ------------------------------------------------------------------ #
+    # 1. «Сырые» сегменты                                                #
+    # ------------------------------------------------------------------ #
+    def build_segments():
+        lines2words = {}
+        for wi, (li, si, ei) in enumerate(spans):
+            lines2words.setdefault(li, []).append((wi, si, ei))
 
-    subs = []
-    sub_idx = 1
-    for li, line in enumerate(lines):
-        if li not in lines2words:
-            continue
-        widxs = lines2words[li]
-        n = len(widxs)
-        for i, wi in enumerate(widxs):
-            _, si, _ = spans[wi]
-            seg_start = 0 if i == 0 else si
-            seg_end = spans[widxs[i+1]][1] if i < n-1 else len(line)
-            prefix = line[:seg_start]
-            selected = line[seg_start:seg_end]
-            suffix = line[seg_end:]
-            hl = f'<font color="#' + highlight_color + '">' + selected + '</font>'
-            if prefix:
-                pref_html = f'<font color="#' + base_color + '">' + prefix + '</font>'
+        segs = []
+        for li, words in lines2words.items():
+            n = len(words)
+            for pos, (wi, si, ei) in enumerate(words):
+                # точка окончания подсветки:
+                #  – начало след. слова (trim-позже)        – если есть след. слово
+                #  – конец строки                           – если слова последнее
+                if pos < n - 1:
+                    seg_end = words[pos + 1][1]        # start of next word
+                else:
+                    seg_end = len(lines[li])
+
+                segs.append({
+                    'idx'        : len(segs) + 1,
+                    'li'         : li,
+                    'start_time' : starts[li] if (pos == 0 and starts)
+                                               else timings[wi][0],
+                    'end_raw'    : (timings[words[pos + 1][0]][0]
+                                    if pos < n - 1
+                                    else timings[wi][1]),
+                    'seg_start'  : si,
+                    'seg_end'    : seg_end,
+                    'is_last'    : (pos == n - 1)
+                })
+        return segs
+
+    # ------------------------------------------------------------------ #
+    # 2. HTML-построитель с “умной” границей                             #
+    # ------------------------------------------------------------------ #
+    def html_span(text: str, start: int, end: int, *, is_last: bool) -> str:
+        """
+        • сдвигает `start` влево, если перед словом “прилипшие” знаки;
+        • убирает лишние пробелы справа, если сегмент НЕ последний в строке;
+        """
+        # 2a. захватываем символы прямо перед словом (пока не пробел)
+        while start > 0 and not text[start - 1].isspace() \
+                       and not text[start - 1].isalnum():
+            start -= 1                       # например, «"слово»
+
+        # 2b. для НЕ-последнего слова убираем пробел(ы) справа
+        if not is_last:
+            while end > start and text[end - 1].isspace():
+                end -= 1                     # “Слово,” ← без пробела
+
+        pre, sel, suf = text[:start], text[start:end], text[end:]
+
+        html = ''
+        if pre:
+            html += f'<font color="#{base_color}">{pre}</font>'
+        html += f'<font color="#{highlight_color}">{sel}</font>'
+        if suf:
+            html += f'<font color="#{base_color}">{suf}</font>'
+        return html
+
+    # ------------------------------------------------------------------ #
+    # 3. Исправляем интервалы start > end (склейка)                      #
+    # ------------------------------------------------------------------ #
+    def fix_intervals(raw):
+        fixed, i = [], 0
+        while i < len(raw):
+            cur = raw[i]
+            if cur['start_time'] <= cur['end_raw']:
+                fixed.append(cur)
+                i += 1
+                continue
+
+            # --- ищем, на чьём end остановиться (до +5) ---
+            j = None
+            for look in range(i + 1, min(i + 6, len(raw))):
+                if raw[look]['end_raw'] >= cur['start_time']:
+                    j = look
+                    break
+            if j is None:                    # совсем плохо? – сплющиваем
+                cur['end_raw'] = cur['start_time']
+                fixed.append(cur)
+                i += 1
+                continue
+
+            group = raw[i:j + 1]
+            first, last = group[0], group[-1]
+
+            # 3a. всё в одной строке ➜ просто расширяем диапазон
+            if all(g['li'] == first['li'] for g in group):
+                li = first['li']
+                text = lines[li]
+                new_html = html_span(
+                    text,
+                    first['seg_start'],
+                    last['seg_end'],
+                    is_last=last['is_last']
+                )
+                fixed.append({
+                    'idx'        : first['idx'],
+                    'start_time' : first['start_time'],
+                    'end_raw'    : last['end_raw'],
+                    'text_html'  : new_html
+                })
+            # 3b. «одиночное» слово-строка ➜ физическое слияние строк
             else:
-                pref_html = ''
-            if suffix:
-                suf_html = f'<font color="#' + base_color + '">' + suffix + '</font>'
-            else:
-                suf_html = ''
-            text_html = pref_html + hl + suf_html
-            if i == 0 and starts:
-                start_time = starts[li]
-            else:
-                start_time = timings[wi][0]
-            end_time = timings[widxs[i+1]][0] if i < n-1 else timings[wi][1]
-            subs.append({'index': sub_idx, 'start': start_time, 'end': end_time, 'text': text_html})
-            sub_idx += 1
-    # synchronize ends
-    for k in range(len(subs)-1):
-        subs[k]['end'] = subs[k+1]['start']
-    # write
-    with open(output_path, 'w', encoding='utf-8') as f:
-        for s in subs:
-            f.write(f"{s['index']}\n")
-            f.write(f"{format_timestamp(s['start'])} --> {format_timestamp(s['end'])}\n")
-            f.write(f"{s['text']}\n\n")
-    print(f"SRT файл создан: {output_path}")
+                lines_block = [lines[g['li']] for g in group
+                               if g is group[0] or g['li'] != group[0]['li']]
+                combo = ' '.join(lines_block)
+                offset = len(lines[group[0]['li']]) + 1   # +1 за пробел
+                span_start = first['seg_start']
+                span_end   = offset + group[-1]['seg_end']
+                new_html   = html_span(combo, span_start, span_end, is_last=True)
+
+                fixed.append({
+                    'idx'        : first['idx'],
+                    'start_time' : first['start_time'],
+                    'end_raw'    : last['end_raw'],
+                    'text_html'  : new_html
+                })
+            i = j + 1
+
+        # синхронизируем «концы» с «началами» следующих
+        for k in range(len(fixed) - 1):
+            fixed[k]['end_raw'] = fixed[k + 1]['start_time']
+        return fixed
+
+    # ------------------------------------------------------------------ #
+    # 4. Записываем файл                                                 #
+    # ------------------------------------------------------------------ #
+    def dump(segs):
+        with open(output_path, 'w', encoding='utf-8') as f:
+            for new_idx, seg in enumerate(segs, 1):
+                f.write(f"{new_idx}\n")
+                f.write(f"{format_timestamp(seg['start_time'])} --> "
+                        f"{format_timestamp(seg['end_raw'])}\n")
+
+                html = seg.get('text_html')
+                if html is None:
+                    # «нормальный» сегмент – строим HTML здесь
+                    li = seg['li']
+                    html = html_span(
+                        lines[li],
+                        seg['seg_start'],
+                        seg['seg_end'],
+                        is_last=seg['is_last']
+                    )
+                f.write(html + '\n\n')
+        print(f"SRT файл создан: {output_path}")
+
+    # ---- pipeline ----
+    raw   = build_segments()
+    good  = fix_intervals(raw)
+    dump(good)
+
+
+
 
 # ---------------------------------------------------------------------------
 # CLI
@@ -335,7 +458,7 @@ def main():
     idxs = list(range(len(json_entries)))
     # align
     result = process(txt_words, toks, idxs)
-    # convert to timings
+    # convert to timings тут индексы таймингов конвертируются в конкретные значения времени
     timings = []
     for st, ed in result:
         if st is None or ed is None:
