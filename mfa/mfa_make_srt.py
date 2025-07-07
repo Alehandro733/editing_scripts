@@ -39,6 +39,8 @@ def parse_timestamp(timestamp_str: str) -> float:
 
 
 def normalize_token(token: str) -> str:
+    """Приводит токен к нижнему регистру, унифицирует кавычки и
+    убирает пунктуацию (кроме апострофа и дефиса внутри слова)."""
     specials = {"<eps>", "<unk>"}
     if token in specials:
         return token
@@ -84,20 +86,29 @@ def parse_json(json_path: str) -> List[dict]:
 def tokenize_lines(lines: List[str]) -> Tuple[List[str], List[Tuple[int, int, int]]]:
     """
     Превращает список строк в плоский список нормализованных токенов и их спанов.
-    Возвращает (words_norm, word_spans), где word_spans — список кортежей (линия, start, end).
-    words_norm и word_spans это по сути одни и те же слова, но представленные в разном виде. Количество индексов - одинаково
-    
-
+    Возвращает (words_norm, word_spans), где word_spans — список кортежей
+    (номер_строки, start, end). Количество элементов в обоих списках одинаковое.
     """
-    token_re = re.compile(r"[A-Za-zÀ-ÖØ-öø-ÿœŒ0-9'’\-]+")
+    # Буквы/цифры/апостроф, + опц. группы «-<буквы/цифры…>».
+    token_re = re.compile(
+        r"[A-Za-zÀ-ÖØ-öø-ÿœŒ0-9'’]+(?:-[A-Za-zÀ-ÖØ-öø-ÿœŒ0-9'’]+)*"
+    )
+
     words_norm: List[str] = []
     word_spans: List[Tuple[int, int, int]] = []
+
     for li, line in enumerate(lines):
-        norm_line = line.replace('’', "'")
+        norm_line = line.replace('’', "'")          # единый апостроф
         for m in token_re.finditer(norm_line):
             tok = m.group(0)
-            words_norm.append(normalize_token(tok))
+            norm_tok = normalize_token(tok)
+
+            if not norm_tok:                       # одиночный «-» → ''
+                continue                           # пропускаем «слово»-дефис
+
+            words_norm.append(norm_tok)
             word_spans.append((li, m.start(), m.end()))
+
     return words_norm, word_spans
 
 # ---------------------------------------------------------------------------
@@ -428,9 +439,6 @@ def write_srt(lines, spans, timings,
     raw   = build_segments()
     good  = fix_intervals(raw)
     dump(good)
-
-
-
 
 # ---------------------------------------------------------------------------
 # CLI
