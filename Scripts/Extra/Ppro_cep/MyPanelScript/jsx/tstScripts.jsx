@@ -1,5 +1,3 @@
-//var debugLog = "";
-//function log(m){ debugLog += m + "\n"; }
 
 /********************
 * ОБЩИЕ УТИЛИТЫ 
@@ -331,37 +329,60 @@ function extractCsvMarkers(csvText, columnName) {
    };
 }
 
+/**
+ * функция-помошник для передачи пути или выбора файла
+ * Возвращает открытый для чтения File с CSV:
+ * — если передали File или строку, пытаемся использовать их;
+ * — иначе показываем диалог.
+ *
+ * @param {File|string=} path_or_File
+ * @returns {File|null} — либо готовый File, либо null
+ */
+function getCsvFile(path_or_File) {
+    // Если передали строку — оборачиваем
+    if (typeof path_or_File === "string") {
+        path_or_File = new File(path_or_File);
+    }
+    // Если ничего не передали — диалог
+    else if (path_or_File == null) {
+        path_or_File = File.openDialog("Выберите CSV файл", "*.csv");
+    }
+    // Если файл не выбран или не открывается — отменяем
+    if (!path_or_File || !path_or_File.open("r")) {
+        alert(path_or_File
+              ? "Ошибка открытия файла: " + path_or_File.fsName
+              : "CSV не выбран.");
+        return null;
+    }
+    return path_or_File;
+}
+
 
 /* Align selected audio clips to markers from a CSV file 
  * targetTrackNumber — 1‑based номер трека, где выделены клипы, которые НУЖНО переместить.
  * На остальных выделенных аудиотреках должны быть «маячные» клипы.
  */
-function AlignAudioClipsToCsvMarks(targetTrackNumber) {
+function AlignAudioClipsToCsvMarks(targetTrackNumber, csvFile) {
 
     // Premiere Pro использует 0‑based индексы треков
     targetTrackNumber = targetTrackNumber - 1;
 
-    /* ===== 0. Проверка активной секвенции ===== */
-    var proj = app.project;
-    var seq  = proj.activeSequence;
+    var seq = app.project.activeSequence;
     if (!seq) {
         alert("Нет активной секвенции!");
         return;
     }
 
-    /* ===== 1. Читаем CSV ===== */
-    var csvFile = File.openDialog("Выберите CSV файл", "*.csv");
-    if (!csvFile || !csvFile.open("r")) {
-        alert("Ошибка открытия файла!");
-        return;
-    }
-    var content = csvFile.read();
+    // ===== 1. Получаем CSV-файл =====
+    csvFile = getCsvFile(csvFile);
+    if (!csvFile) return;
+    var csvContent = csvFile.read();
     csvFile.close();
 
     /* ===== 2. Извлекаем метки из колонки \"audio\" ===== */
     var data;
     try {
-        data = extractCsvMarkers(content, "audio");
+        data = extractCsvMarkers(csvContent, "audio");
     } catch (e) {
         alert(e.message);
         return;
@@ -443,21 +464,23 @@ function AlignAudioClipsToCsvMarks(targetTrackNumber) {
 }
 
 
-function AlignImagesToCsvMarks() {
-    /* ===== 0. Активная секвенция ===== */
-    var proj = app.project;
-    var seq  = proj.activeSequence;
+function AlignImagesToCsvMarks(csvFile) {
+    // ===== 0. Активная секвенция =====
+    var seq = app.project.activeSequence;
     if (!seq) {
         alert("Нет активной секвенции!");
         return;
     }
 
-    /* ===== 1. Читаем CSV ===== */
-    var csvFile = File.openDialog("Выберите CSV файл", "*.csv");
-    if (!csvFile || !csvFile.open("r")) {
-        alert("Ошибка открытия файла!");
+    // ===== 1. Получаем CSV-файл =====
+    var seq = app.project.activeSequence;
+    if (!seq) {
+        alert("Нет активной секвенции!");
         return;
     }
+
+    csvFile = getCsvFile(csvFile);
+    if (!csvFile) return;
     var csvContent = csvFile.read();
     csvFile.close();
 
@@ -555,6 +578,551 @@ function AlignImagesToCsvMarks() {
 
  //AlignImagesToCsvMarks() // "Выравнивание картинок по меткам в csv. Нужно выбрать картинки и аудио клипы."
  //AlignAudioClipsToCsvMarks(4) // "выделите аудио эффекты и аудиоклипы для выравнивания" (1 числовое - выберите трек, на котором находятся аудио-эффекты)
-
-
  //alert(debugLog);
+
+// ===== mini‑лог‑хелпер =====
+function myLog(msg){ alert(msg); }
+
+
+/**
+ * Импортирует папку или файл в корень активного проекта Premiere Pro.
+ *
+ * @param {string} absFilePath — абсолютный путь к файлу в файловой системе Windows.
+ */
+function importSingleFile(absFilePath) {
+
+    var project  = app.project,
+        rootBin  = project.rootItem,
+        fileObj  = new File(absFilePath);
+
+    if (!fileObj.exists) {
+        myLog("Файл не найден:\n" + absFilePath);
+        return;
+    }
+
+    // импортируем массивом из одного пути
+    var suppressWarnings = true,
+        importAsStills   = false; // по умолчанию
+    project.importFiles(
+        [ fileObj.fsName ],
+        suppressWarnings,
+        rootBin,
+        importAsStills
+    );
+
+//    myLog("Файл «" + fileObj.name + "» успешно импортирован.");
+}
+
+
+
+
+//////////////////////////////////////
+
+// ===== 1. Поиск bin по «пути» вида "data/images" =====
+function findBinByPath(binPath) {
+    var parts    = binPath.split("/"),
+        current = app.project.rootItem;
+
+    for (var i = 0; i < parts.length; i++) {
+        var found = false;
+        for (var j = 0; j < current.children.numItems; j++) {
+            var child = current.children[j];
+            if (child.type === ProjectItemType.BIN && child.name === parts[i]) {
+                current = child;
+                found   = true;
+                break;
+            }
+        }
+        if (!found) { return null; }
+    }
+    return current;
+}
+
+// ===== 2. Поиск одиночного файла в корне =====
+function findFileInRoot(name) {
+    var root = app.project.rootItem;
+    for (var i = 0; i < root.children.numItems; i++) {
+        var ch = root.children[i];
+        if (ch.type !== ProjectItemType.BIN && ch.name === name) {
+            return ch;
+        }
+    }
+    return null;
+}
+
+// ===== 3. Сбор медиа из bin (рекурсивно), отбирая только нужные расширения =====
+function collectMediaFromBin(binItem, regex) {
+    var out = [];
+    for (var i = 0; i < binItem.children.numItems; i++) {
+        var ch = binItem.children[i];
+        if (ch.type === ProjectItemType.BIN) {
+            out = out.concat(collectMediaFromBin(ch, regex));
+        } else if (regex.test(ch.name)) {
+            out.push(ch);
+        }
+    }
+    return out;
+}
+
+
+
+/**
+ * Отладочная версия ES3: ищет ProjectItem’ы по путям и выводит alert’ы.
+ *
+ * @param {string[]} paths   — массив путей (имена файлов или bin-пути через "/")
+ * @param {string[]=} filter — массив из {"video","audio","images"} и/или своих 
+ *                             расширений (".png","mp3", "svg") либо raw‑regex строк "/.../i".
+ *                             Если не задан или пустой — без фильтра (все items).
+ * @returns {ProjectItem[]}
+ */
+function resolveItemsByPathsDebug(paths, filter) {
+    // 1) Определяем, нужен ли вообще фильтр
+    var noFilter = (filter == null) || !(filter instanceof Array) || (filter.length === 0);
+
+    // 2) Базовые регулярки
+    var vr = /\.(mp4|mov|avi|mkv)$/i;
+    var ar = /\.(wav|mp3|aac|flac)$/i;
+    var ir = /\.(jpg|jpeg|png|gif|bmp|webp)$/i;
+
+    // 3) Собираем общий RegExp
+    var combinedRe;
+    if (noFilter) {
+        combinedRe = /.*/i;  // всё пропускаем
+    } else {
+        var parts = [];
+        for (var i = 0; i < filter.length; i++) {
+            var f = filter[i];
+            if (typeof f !== "string") { continue; }
+            var key = f.toLowerCase();
+
+            // 3.1) Алиасы
+            if (key === "video") {
+                parts.push(vr.source);
+                continue;
+            }
+            if (key === "audio") {
+                parts.push(ar.source);
+                continue;
+            }
+            if (key === "images" || key === "image") {
+                parts.push(ir.source);
+                continue;
+            }
+
+            // 3.2) Raw‑регулярка: строка вида "/pattern/flags"
+            if (f.charAt(0) === "/" && f.lastIndexOf("/") > 0) {
+                var last = f.lastIndexOf("/");
+                var patt = f.substring(1, last);
+                var flags = f.substring(last+1);
+                try {
+                    // Проверим, что это валидный RegExp
+                    var tmp = new RegExp(patt, flags);
+                    parts.push(tmp.source);
+                } catch (e) {
+                    // Игнорируем некорректное
+                }
+                continue;
+            }
+
+            // 3.3) Рассматриваем как расширение
+            //      убираем ведущую точку, экранируем точку в начале и ставим $ на конец
+            var ext = (f.charAt(0) === ".") ? f.slice(1) : f;
+            // экранируем возможные спецсимволы
+            ext = ext.replace(/[-\\^$*+?.()|[\]{}]/g, "\\$&");
+            parts.push("\\." + ext + "$");
+        }
+
+        // 3.4) Если после всего нет частей — тоже без фильтра
+        if (parts.length === 0) {
+            combinedRe = /.*/i;
+        } else {
+            combinedRe = new RegExp(parts.join("|"), "i");
+        }
+    }
+
+    // 4) Основной обход путей (как раньше)
+    var result = [];
+    for (var idx = 0; idx < paths.length; idx++) {
+        var p = paths[idx];
+    //    alert("Обрабатываем путь [" + idx + "]: " + p);
+
+        if (p.indexOf("/") >= 0) {
+            var bin = findBinByPath(p);
+            if (!bin) { alert("Bin не найден: " + p); continue; }
+    //        alert("Bin найден: " + p + " (items: " + bin.children.numItems + ")");
+            var media = collectMediaFromBin(bin, combinedRe);
+    //        alert("Найдено в bin: " + media.length);
+            for (var m = 0; m < media.length; m++) result.push(media[m]);
+        } else {
+            var fileItem = findFileInRoot(p);
+            if (fileItem) {
+    //            alert("Файл в корне: " + p);
+                result.push(fileItem);
+            } else {
+                var b = findBinByPath(p);
+                if (b) {
+    //                alert("Bin по имени: " + p + " (items: " + b.children.numItems + ")");
+                    var media2 = collectMediaFromBin(b, combinedRe);
+    //                alert("Найдено в bin: " + media2.length);
+                    for (var m2 = 0; m2 < media2.length; m2++) result.push(media2[m2]);
+                } else {
+                    alert("Не найден: " + p);
+                }
+            }
+        }
+    }
+
+    // 5) Отчёт
+    // if (result.length) {
+    //     var names = [];
+    //     for (var i = 0; i < result.length; i++) names.push(result[i].name);
+    //     alert("Итог: " + result.length + " -> " + names.join(", "));
+    // } else {
+    //     alert("Итог: ничего не найдено.");
+    // }
+
+    return result;
+}
+
+/**
+ * Ищет ProjectItem по точному пути внутри проекта.
+ * Путь — строка вида "Bin1/Bin2/.../ItemName.ext" или просто "ItemName.ext" (в корне).
+ *
+ * @param {string} path  — путь через "/", например "data/subtitles.srt"
+ * @returns {ProjectItem|null} — найденный элемент или null, если не найден
+ */
+function getProjectItemByPath(path) {
+    // Стартуем с корневого бина проекта
+    var currentBin = app.project.rootItem;
+    if (!currentBin || !currentBin.children) {
+        return null;
+    }
+
+    // Разбиваем путь на сегменты
+    var parts = path.split("/");
+
+    // Проходим по всем сегментам
+    for (var i = 0; i < parts.length; i++) {
+        var nameToFind = parts[i];
+        var found = null;
+
+        // Ищем в текущем бине ребёнка с нужным именем
+        for (var j = 0; j < currentBin.children.numItems; j++) {
+            var child = currentBin.children[j];
+            if (child && child.name === nameToFind) {
+                found = child;
+                break;
+            }
+        }
+
+        // Если не нашли — возвращаем null
+        if (!found) {
+            return null;
+        }
+
+        // Если это не последний сегмент, убеждаемся, что нашли бин, и спускаемся в него
+        if (i < parts.length - 1) {
+            if (found.type === ProjectItemType.BIN) {
+                currentBin = found;
+            } else {
+                // Нашли файл там, где ожидали бин
+                return null;
+            }
+        } else {
+            // Последний сегмент — это искомый ProjectItem
+            return found;
+        }
+    }
+
+    return null; // теоретически сюда не дойдём
+}
+
+
+
+/**
+ * Укладывает массив ProjectItem‑ов на таймлайн, вставляя их
+ * в **обратном порядке** в одну и ту же точку (`startSec`)
+ * с помощью insertClip(). Каждый новый клип сдвигает предыдущие вправо,
+ * поэтому итоговый порядок на дорожке будет прямой (1‑2‑3…).
+ *
+ * @param {ProjectItem[]} items      — список из resolveItemsByPathsDebug()
+ * @param {'audio'|'video'} trackType — тип трека
+ * @param {number}        trackIndex  — индекс трека (0‑based)
+ * @param {number}        startSec    — время начала в секундах
+ */
+function placeItemsOnTimeline(items, trackType, trackIndex, startSec) {
+
+    function log(m){ alert(m); }
+
+    var seq = app.project.activeSequence;
+    if (!seq){ log("Нет активной секвенции."); return; }
+
+    // выбираем аудио‑ или видео‑трек
+    var track = (trackType === "audio") ? seq.audioTracks[trackIndex]
+                                        : seq.videoTracks[trackIndex];
+    if (!track){ log("Трек "+trackType+"["+trackIndex+"] не найден."); return; }
+
+    log("Начинаем вставку "+items.length+" элементов в "+trackType+
+        "["+trackIndex+"] c позиции "+startSec+" сек.");
+
+    // === вставляем с КОНЦА массива, чтобы первый клип оказался самым левым ===
+    for (var i = items.length - 1; i >= 0; i--) {
+        var itm = items[i];
+        if (!itm) continue;
+
+        track.insertClip(itm, startSec);   // каждую вставку — в точку startSec
+        //log("Вставлен: "+itm.name);
+    }
+
+    log("Готово: уложено "+items.length+" клипов.");
+}
+
+/**
+ * Размещает переданный .srt ProjectItem на новом caption-треке активной секвенции.
+ *
+ * @param {ProjectItem} srtItem  — ProjectItem с .srt-файлом, который уже импортирован в проект
+ * @param {number=}     startSec — время начала в секундах (по умолчанию 0)
+ * @returns {boolean}            — true, если трек создан и субтитры добавлены, иначе false
+ */
+function placeSrtProjectItemOnNewCaptionTrack(srtItem, startSec) {
+    function log(msg) { alert(msg); }
+
+    // Проверяем активную секвенцию
+    var seq = app.project.activeSequence;
+    if (!seq) {
+        log("Нет активной секвенции.");
+        return false;
+    }
+
+    // Проверяем переданный ProjectItem
+    if (!srtItem || srtItem.type !== ProjectItemType.CLIP) {
+        log("Неверный ProjectItem: ожидается импортированный .srt-клип.");
+        return false;
+    }
+
+    // Время старта
+    var time = (typeof startSec === "number") ? startSec : 0;
+
+    log("Создаём новый caption-трек и добавляем субтитры с " + time + " сек.");
+
+    // Создаём новый caption-трек с .srt внутри
+    // (captionFormat можно передать третьим аргументом, по умолчанию Subtitle)
+    var result = seq.createCaptionTrack(srtItem, time);
+
+    if (!result) {
+        log("Не удалось создать caption-трек.");
+        return false;
+    }
+
+    log("Caption-трек успешно создан.");
+    return true;
+}
+
+
+/**
+ *  Возвращает массив всех клипов на указанном треке (audio или video).
+ *
+ * @param {string} trackType    — "audio" или "video"
+ * @param {number} trackIndex   — индекс трека (0‑based)
+ * @returns {TrackItem[]}       — массив клипов (может быть пустым)
+ */
+function getClipsOnTrack(trackType, trackIndex) {
+    var seq = app.project.activeSequence;
+    if (!seq) {
+        alert("Нет активной секвенции.");
+        return [];
+    }
+
+    var tracks;
+    if (trackType === "audio") {
+        tracks = seq.audioTracks;
+    } else if (trackType === "video") {
+        tracks = seq.videoTracks;
+    } else {
+        alert("Неверный тип трека: " + trackType);
+        return [];
+    }
+
+    // Premiere Pro Scripting: audioTracks.numTracks, videoTracks.numTracks
+    if (trackIndex == null || isNaN(trackIndex) ||
+        trackIndex < 0 || trackIndex >= tracks.numTracks) {
+        alert("Трек " + trackType + "[" + trackIndex + "] не найден.");
+        return [];
+    }
+
+    var track = tracks[trackIndex];
+    var clips = [];
+    // Каждый трек имеет коллекцию clips с .numItems
+    for (var i = 0; i < track.clips.numItems; i++) {
+        var clip = track.clips[i];
+        if (clip) {
+            clips.push(clip);
+        }
+    }
+    return clips;
+}
+
+
+/**
+ *  Выбирает (select) все переданные клипы.
+ *
+ * @param {TrackItem[]} clipsArray — массив TrackItem’ов
+ */
+function selectClips(clipsArray) {
+    if (!clipsArray || !(clipsArray instanceof Array)) {
+        return;
+    }
+    for (var i = 0; i < clipsArray.length; i++) {
+        var clip = clipsArray[i];
+        if (clip && typeof clip.setSelected === "function") {
+            // state = 1 (selected), updateUI = 1
+            clip.setSelected(1, 1);
+        }
+    }
+}
+
+
+/**
+ * 3 Снимает выделение (deselect) со всех клипов во всех audio и video треках.
+ */
+function deselectAllClips() {
+    var seq = app.project.activeSequence;
+    if (!seq) {
+        return;
+    }
+
+    // вспомогательная функция для одного набора треков
+    function deselectInTracks(tracks) {
+        for (var t = 0; t < tracks.numTracks; t++) {
+            var track = tracks[t];
+            for (var i = 0; i < track.clips.numItems; i++) {
+                var clip = track.clips[i];
+                if (clip && typeof clip.setSelected === "function") {
+                    // state = 0 (deselected), updateUI = 1
+                    clip.setSelected(0, 1);
+                }
+            }
+        }
+    }
+
+    deselectInTracks(seq.audioTracks);
+    deselectInTracks(seq.videoTracks);
+}
+
+
+/**
+ * Показывает в alert() все строковые параметры компонента с текстом
+ * у заданного TrackItem.
+ *
+ * @param {TrackItem} trackItem — элемент на таймлинии (videoTracks[i].clips[j] или audioTracks).
+ */
+function alertGraphicClipTextES3(trackItem) {
+    if (!trackItem || !trackItem.components) {
+        alert("У элемента нет компонентов.");
+        return;
+    }
+
+    var comps = trackItem.components;
+    // Пробегаем все компоненты
+    for (var i = 0; i < comps.numItems; i++) {
+        var comp = comps[i];
+        alert("Компонент: " + comp.displayName + " (matchName: " + comp.matchName + ")");
+
+        var props = comp.properties;
+        // Пробегаем все свойства‑параметры
+        for (var j = 0; j < props.numItems; j++) {
+            var prop = props[j];
+            alert("  Свойство: " + prop.displayName + " (matchName: " + prop.matchName + ")");
+
+            // Ищем именно текстовые свойства: чаще всего их matchName содержит "Text" или "ADBE Text Document"
+            if (/text/i.test(prop.matchName)) {
+                // getValue() сразу отдаёт строку или объект‑значение, в Premiere Pro это строка
+                var value = prop.getValue();
+                alert("    Значение: " + value);
+            }
+        }
+    }
+}
+
+/**
+ * Показывает в alert() все строковые параметры компонента с текстом
+ * у заданного TrackItem.
+ *
+ * @param {TrackItem} trackItem — элемент на таймлинии (videoTracks[i].clips[j] или audioTracks).
+ */
+function alertGraphicClipTextES3(trackItem) {
+    if (!trackItem || !trackItem.components) {
+        alert("У элемента нет компонентов.");
+        return;
+    }
+
+    var comps = trackItem.components;
+    // Пробегаем все компоненты
+    for (var i = 0; i < comps.numItems; i++) {
+        var comp = comps[i];
+        alert("Компонент: " + comp.displayName + " (matchName: " + comp.matchName + ")");
+
+        var props = comp.properties;
+        // Пробегаем все свойства‑параметры
+        for (var j = 0; j < props.numItems; j++) {
+            var prop = props[j];
+            alert("  Свойство: " + prop.displayName + " (matchName: " + prop.matchName + ")");
+
+            // Ищем именно текстовые свойства: чаще всего их matchName содержит "Text" или "ADBE Text Document"
+            if (/text/i.test(prop.matchName)) {
+                // getValue() сразу отдаёт строку или объект‑значение, в Premiere Pro это строка
+                var value = prop.getValue();
+                alert("    Значение: " + value);
+            }
+        }
+    }
+}
+
+
+//automation consts
+
+var projectPath = "C:\\Users\\Michail\\Desktop\\bakery_shirt\\";
+
+function testImport() {
+//alert("начало тестового импорта");
+
+importSingleFile(projectPath + "images");
+importSingleFile(projectPath + "normalized");
+
+importSingleFile(projectPath + "French.srt");
+
+//importSingleFile(projectPath + "English.srt");
+//importSingleFile(projectPath + "Speaker.srt");
+}
+
+function testPlace() {
+placeItemsOnTimeline(resolveItemsByPathsDebug(['images'], []), 'video', 0, 0);
+placeItemsOnTimeline(resolveItemsByPathsDebug(["normalized"]), 'audio', 0, 0);
+placeSrtProjectItemOnNewCaptionTrack(getProjectItemByPath("French.srt"),0);
+}
+
+
+
+function testMove() {
+deselectAllClips()
+
+selectClips(getClipsOnTrack("audio", 0));
+glueSelectedAudioClipsAddGap(0.5);
+
+selectClips(getClipsOnTrack("audio", 0));
+selectClips(getClipsOnTrack("video", 0));
+AlignImagesToCsvMarks(projectPath + "bakery.csv");
+
+deselectAllClips()
+}
+
+function testAll() {
+
+//placeItemsOnTimeline([getProjectItemByPath('images')], 'video', 0, 0);
+
+
+ testImport();
+ testPlace();
+ testMove();
+
+};

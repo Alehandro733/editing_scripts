@@ -1,142 +1,207 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<title>Premiere Pro CEP Panel</title>
+  <meta charset="UTF-8" />
+  <title>Premiere Pro CEP Panel</title>
 
-<!-- CEP SDK -->
-<script src="CSInterface.js"></script>
-<script src="main.js"></script>
+  <!-- libs -->
+  <script src="./lib/CSInterface.js"></script>
+  <script src="./lib/jquery-1.9.1.js"></script>
+  <script src="./lib/CEPEngine_extensions.js"></script>
+  <style>
+    body{background:#2d2d2d;margin:0;padding:20px;font-family:Arial,sans-serif;color:#fff}
+    h2{margin-bottom:20px}
 
-<style>
-body{background:#2d2d2d;margin:0;padding:20px;font-family:Arial,sans-serif;color:#fff}
-h2{margin-bottom:20px}
-.button-container{display:flex;flex-direction:column;gap:20px;width:100%}
-.button-wrapper{position:relative;background:#404040;border:1px solid #5a5a5a;border-radius:4px;
-                padding:12px;box-sizing:border-box;transition:background .3s;overflow:hidden;width:100%}
-.button-wrapper:hover{background:#505050}
-.main-btn{width:100%;background:none;border:none;color:#fff;font-size:16px;text-align:left;cursor:pointer;padding:0}
-.par-btn{position:absolute;top:12px;right:12px;padding:4px 8px;font-size:12px;border:1px solid #5a5a5a;
-         border-radius:3px;background:#5a5a5a;color:#fff;cursor:pointer;transition:background .3s}
-.par-btn:hover{background:#666}
-.param-content{margin-top:10px;border-top:1px solid #5a5a5a;padding-top:10px;display:none}
-.button-wrapper.expanded .param-content{display:flex;flex-wrap:wrap;gap:12px}
-.param-item{flex:0 1 auto;min-width:120px}
-.param-item label{display:block;margin-bottom:4px;font-size:12px;color:#ccc}
-.param-input{width:100%;padding:6px;background:#2d2d2d;border:1px solid #5a5a5a;border-radius:3px;color:#fff;box-sizing:border-box}
-</style>
+    /* tabs */
+    .tabs{display:flex;margin-bottom:20px;border-bottom:1px solid #5a5a5a}
+    .tab-button{padding:10px 20px;background:none;border:none;border-bottom:2px solid transparent;
+                color:#fff;cursor:pointer;font-size:16px;transition:.3s}
+    .tab-button:hover{background:#404040}
+    .tab-button.active{border-color:#00aaff;background:#404040}
+    .tab-content{display:none}
+    .tab-content.active{display:block}
+
+    /* buttons */
+    .button-container{display:flex;flex-direction:column;gap:20px;width:100%}
+    .button-wrapper{position:relative;background:#404040;border:1px solid #5a5a5a;border-radius:4px;
+                    padding:12px;overflow:hidden;transition:.3s}
+    .button-wrapper:hover{background:#505050}
+    .main-btn{width:100%;background:none;border:none;color:#fff;font-size:16px;text-align:left;cursor:pointer}
+    .par-btn{position:absolute;top:12px;right:12px;padding:4px 8px;font-size:12px;border:1px solid #5a5a5a;
+             border-radius:3px;background:#5a5a5a;color:#fff;cursor:pointer;transition:.3s}
+    .par-btn:hover{background:#666}
+    .param-content{margin-top:10px;border-top:1px solid #5a5a5a;padding-top:10px;display:none}
+    .button-wrapper.expanded .param-content{display:flex;flex-wrap:wrap;gap:12px}
+    .param-item{flex:0 1 auto;min-width:120px}
+    .param-item label{display:block;margin-bottom:4px;font-size:12px;color:#ccc}
+    .param-input{width:100%;padding:6px;background:#2d2d2d;border:1px solid #5a5a5a;border-radius:3px;color:#fff;box-sizing:border-box}
+  </style>
 </head>
 <body>
-<h2>Magic Scripts v1</h2>
+  <h2>Editing Scripts v1.1</h2>
 
-<div class="button-container">
-
-  <!-- 1. zigZagAudioClipsWithOffset -->
-  <div class="button-wrapper">
-    <button class="main-btn" data-fn="zigZagAudioClipsWithOffset"
-            title="Выравнивание выбранных клипов зиг‑загом на треках 1‑2 с паузами">Зиг‑заг аудио</button>
-    <button class="par-btn" title="Показать параметры">par</button>
-    <div class="param-content">
-      <div class="param-item">
-        <label for="zig-upper">Пауза верх (c)</label>
-        <input id="zig-upper" type="number" step="0.1" class="param-input" placeholder="0.5"
-               title="Пауза после верхних клипов, с">
-      </div>
-      <div class="param-item">
-        <label for="zig-lower">Пауза низ (c)</label>
-        <input id="zig-lower" type="number" step="0.1" class="param-input" placeholder="0.3"
-               title="Пауза после нижних клипов, с">
-      </div>
-    </div>
+  <!-- tabs -->
+  <div class="tabs">
+    <button class="tab-button active" data-tab="main">Main</button>
+    <button class="tab-button" data-tab="test">Test</button>
+	<button class="tab-button" data-tab="auto">Auto</button>
+	
   </div>
 
-  <!-- 2. alignSelectedVideoToAudio -->
-  <div class="button-wrapper">
-    <button class="main-btn" data-fn="alignSelectedVideoToAudio"
-            title="Выравнивание выбранных видео‑клипов по выбранным аудио‑клипам">
-      Выровнять видео по аудио
-    </button>
-  </div>
+  <!-- containers (пустые: наполняются скриптом) -->
+  <div id="main" class="tab-content active"><div class="button-container"></div></div>
+  <div id="test" class="tab-content"><div class="button-container"></div></div>
+  <div id="auto" class="tab-content"><div class="button-container"></div></div>
 
-  <!-- 3. glueSelectedAudioClipsAddGap -->
-  <div class="button-wrapper">
-    <button class="main-btn" data-fn="glueSelectedAudioClipsAddGap"
-            title="Удалить паузы между клипами и задать фиксированную">
-      Склеить аудио‑клипы с паузой
-    </button>
-    <button class="par-btn" title="Показать параметры">par</button>
-    <div class="param-content">
-      <div class="param-item">
-        <label for="gap">Пауза (c)</label>
-        <input id="gap" type="number" step="0.1" class="param-input" placeholder="0.0"
-               title="Пауза между клипами, с">
-      </div>
-    </div>
-  </div>
+  <script>
+  $(function(){
 
-  <!-- 4. AlignImagesToCsvMarks -->
-  <div class="button-wrapper">
-    <button class="main-btn" data-fn="AlignImagesToCsvMarks"
-            title="Выравнивание картинок по меткам из CSV (выберите картинки и аудио‑клипы)">
-      Выровнять картинки по меткам CSV
-    </button>
-  </div>
+    /* ===== 1. Конфигурация кнопок ===== */
+    const cfg = {
+      main: [
+        {
+          fn:'zigZagAudioClipsWithOffset',
+          label:'Зиг-заг аудио',
+          title:'Выравнивание выбранных клипов зиг‑загом',
+          params:[
+            {label:'Пауза верх (c)', placeholder:'0.5', step:0.1},
+            {label:'Пауза низ (c)',  placeholder:'0.3', step:0.1}
+          ]
+        },
+        { fn:'alignSelectedVideoToAudio',
+          label:'Выровнять видео по аудио',
+          title:'Выравнивание выбранных видео‑клипов по аудио'
+        },
+        {
+          fn:'glueSelectedAudioClipsAddGap',
+          label:'Склеить аудио‑клипы с паузой',
+          params:[{label:'Пауза (c)', placeholder:'0.0', step:0.1}]
+        },
+        { fn:'AlignImagesToCsvMarks',
+          label:'Выровнять картинки по меткам CSV'
+        },
+        {
+          fn:'AlignAudioClipsToCsvMarks',
+          label:'Выровнять аудио‑клипы по CSV',
+          params:[{label:'Трек эффектов', placeholder:'5', step:1, min:1}]
+        },
+        { fn:'render',
+          label:'Render to WAV',
+          file:'render.jsx'
+        }
+      ],
+      test: [
+        { fn:'testFunc',
+          label:'Test Func',
+          title:'Запустить testFunc из tstScripts.jsx'
+        },
+        { fn:'testImport',
+          label:'Test import',
+          title:'Запустить testImport из tstScripts.jsx'
+        },
+        { fn:'testSelect',
+          label:'testSelect',
+          title:'Запустить testImport из tstScripts.jsx'
+        },
+        { fn:'testDeSelect',
+          label:'testDeSelect',
+          title:'Запустить testImport из tstScripts.jsx'
+        },
+		{ fn:'testExtractText',
+          label:'testExtractText',
+          title:'Запустить testImport из tstScripts.jsx'
+        },
+        { fn:'testCaption',
+          label:'Test srt',
+          title:'Запустить testCaption из tstScripts.jsx'
+        }
+      ],
+      auto: [
+        { fn:'testImport',
+          label:'import',
+          title:''
+        },
+        { fn:'testPlace',
+          label:'Place all',
+          title:''
+        },
+        { fn:'testMove',
+          label:'align aud, img',
+          title:''
+        },
+        { fn:'deselectAllClips',
+          label:'deSelect',
+          title:''
+        },
+		{ fn:'testAll',
+          label:'all',
+          title:''
+        },
+        { fn:'testCaption',
+          label:'empty',
+          title:''
+        }
+      ]
+    };
 
-  <!-- 5. AlignAudioClipsToCsvMarks -->
-  <div class="button-wrapper">
-    <button class="main-btn" data-fn="AlignAudioClipsToCsvMarks"
-            title="Выделите аудио‑эффекты и аудио‑клипы для выравнивания">
-      Выровнять аудио‑клипы по меткам CSV
-    </button>
-    <button class="par-btn" title="Показать параметры">par</button>
-    <div class="param-content">
-      <div class="param-item">
-        <label for="track-num">Трек эффектов</label>
-        <input id="track-num" type="number" step="1" min="1" class="param-input" placeholder="5"
-               title="Номер трека, где находятся аудио‑эффекты">
-      </div>
-    </div>
-  </div>
-
-</div><!-- /.button-container -->
-
-<script>
-/* 1. Раскрытие параметров */
-document.querySelectorAll('.par-btn').forEach(btn => {
-  btn.addEventListener('click', () =>
-    btn.closest('.button-wrapper').classList.toggle('expanded')
-  );
-});
-
-/* 2. CEP‑взаимодействие */
-document.addEventListener('DOMContentLoaded', () => {
-
-  const csInterface = new CSInterface();
-
-  document.querySelectorAll('.main-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const fnName = btn.dataset.fn;
-      if (!fnName) {
-        console.warn('data-fn не указан');
-        return;
-      }
-
-      /* собираем числовые параметры из полей внутри этого блока */
-      const inputs = btn.closest('.button-wrapper').querySelectorAll('.param-input');
-      const params = Array.from(inputs).map(inp => parseFloat(inp.value || 0));
-      const paramStr = params.join(',');
-
-      /* путь ко всем jsx теперь один */
-      const jsxPath = csInterface.getSystemPath(SystemPath.EXTENSION)
-                    + '/jsx/tstScripts.jsx';
-
-      /* формируем и отправляем команду */
-      const cmd = `$.evalFile("${jsxPath}"); ${fnName}(${paramStr});`;
-      csInterface.evalScript(cmd);
+    /* ===== 2. Рендер кнопок ===== */
+    function paramHTML(p){
+      return `<div class="param-item">
+                <label>${p.label}</label>
+                <input type="number" class="param-input"
+                       placeholder="${p.placeholder||''}"
+                       step="${p.step||1}" ${p.min?`min="${p.min}"`:''}>
+              </div>`;
+    }
+    function buttonHTML(item){
+      const hasParams = item.params?.length;
+      return `<div class="button-wrapper">
+                <button class="main-btn" data-fn="${item.fn}"
+                        data-file="${item.file||''}" title="${item.title||''}">
+                  ${item.label}
+                </button>
+                ${hasParams?'<button class="par-btn" title="Показать параметры">par</button>':''}
+                ${hasParams?`<div class="param-content">
+                                ${item.params.map(paramHTML).join('')}
+                              </div>`:''}
+              </div>`;
+    }
+    $.each(cfg, (tab, items)=>{
+      const $container = $('#'+tab+' .button-container');
+      items.forEach(it => $container.append(buttonHTML(it)));
     });
-  });
 
-});
-</script>
+    /* ===== 3. UI‑логика ===== */
+    // tabs
+    $('.tab-button').on('click', function(){
+      $('.tab-button').removeClass('active');
+      $(this).addClass('active');
+      const t=$(this).data('tab');
+      $('.tab-content').removeClass('active');
+      $('#'+t).addClass('active');
+    });
+    // раскрытие параметров
+    $(document).on('click','.par-btn',function(){
+      $(this).closest('.button-wrapper').toggleClass('expanded');
+    });
+
+    /* ===== 4. Вызов JSX ===== */
+    const cs = new CSInterface();
+    $(document).on('click','.main-btn',function(){
+      const fn   = $(this).data('fn');
+      const file = $(this).data('file') || (fn==='render'?'render.jsx':'tstScripts.jsx');
+      const params = $(this).closest('.button-wrapper')
+                      .find('.param-input')
+                      .map((_,el)=>parseFloat(el.value||0))
+                      .get()
+                      .join(',');
+
+      const jsxPath = cs.getSystemPath(SystemPath.EXTENSION) + '/jsx/' + file;
+      const cmd     = `$.evalFile("${jsxPath}"); ${fn}(${params});`;
+      cs.evalScript(cmd);
+    });
+
+  });
+  </script>
 </body>
 </html>
