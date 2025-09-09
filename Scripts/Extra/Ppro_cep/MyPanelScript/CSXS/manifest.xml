@@ -22,7 +22,7 @@
                     <!-- Основной HTML-файл, который содержит меню с кнопками -->
                     <MainPath>./index.html</MainPath>
                     <!-- Скрипты JSX, которые будут запускаться -->
-                    <ScriptPath>./jsx/core.jsx</ScriptPath>
+			<ScriptPath>./jsx/CepJsxBridge.jsx</ScriptPath>
 		    <ScriptPath>./jsx/tstScripts.jsx</ScriptPath>
                     <CEFCommandLine>
                         <Parameter>--enable-nodejs</Parameter>

@@ -2,67 +2,158 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Premiere Pro CEP Panel</title>
-
+  <title>Premiere Pro CEP Panel — Unified</title>
   <!-- libs -->
   <script src="./lib/CSInterface.js"></script>
   <script src="./lib/jquery-1.9.1.js"></script>
   <script src="./lib/CEPEngine_extensions.js"></script>
-  <style>
-    body{background:#2d2d2d;margin:0;padding:20px;font-family:Arial,sans-serif;color:#fff}
-    h2{margin-bottom:20px}
-
-    /* tabs */
-    .tabs{display:flex;margin-bottom:20px;border-bottom:1px solid #5a5a5a}
-    .tab-button{padding:10px 20px;background:none;border:none;border-bottom:2px solid transparent;
-                color:#fff;cursor:pointer;font-size:16px;transition:.3s}
-    .tab-button:hover{background:#404040}
-    .tab-button.active{border-color:#00aaff;background:#404040}
-    .tab-content{display:none}
-    .tab-content.active{display:block}
-
-    /* buttons */
-    .button-container{display:flex;flex-direction:column;gap:20px;width:100%}
-    .button-wrapper{position:relative;background:#404040;border:1px solid #5a5a5a;border-radius:4px;
-                    padding:12px;overflow:hidden;transition:.3s}
-    .button-wrapper:hover{background:#505050}
-    .main-btn{width:100%;background:none;border:none;color:#fff;font-size:16px;text-align:left;cursor:pointer}
-    .par-btn{position:absolute;top:12px;right:12px;padding:4px 8px;font-size:12px;border:1px solid #5a5a5a;
-             border-radius:3px;background:#5a5a5a;color:#fff;cursor:pointer;transition:.3s}
-    .par-btn:hover{background:#666}
-    .param-content{margin-top:10px;border-top:1px solid #5a5a5a;padding-top:10px;display:none}
-    .button-wrapper.expanded .param-content{display:flex;flex-wrap:wrap;gap:12px}
-    .param-item{flex:0 1 auto;min-width:120px}
-    .param-item label{display:block;margin-bottom:4px;font-size:12px;color:#ccc}
-    .param-input{width:100%;padding:6px;background:#2d2d2d;border:1px solid #5a5a5a;border-radius:3px;color:#fff;box-sizing:border-box}
-  </style>
+  <!-- unified styles -->
+  <link rel="stylesheet" href="./app.css">
 </head>
 <body>
-  <h2>Editing Scripts v1.1</h2>
 
-  <!-- tabs -->
+  <!-- Tabs -->
   <div class="tabs">
     <button class="tab-button active" data-tab="main">Main</button>
-    <button class="tab-button" data-tab="test">Test</button>
-	<button class="tab-button" data-tab="auto">Auto</button>
-	
+    <button class="tab-button" data-tab="auto">Auto</button>
+    <button class="tab-button" data-tab="debug">Debug</button>
   </div>
 
-  <!-- containers (пустые: наполняются скриптом) -->
+  <!-- ===== Buttons panel (from index_buttons) ===== -->
   <div id="main" class="tab-content active"><div class="button-container"></div></div>
-  <div id="test" class="tab-content"><div class="button-container"></div></div>
-  <div id="auto" class="tab-content"><div class="button-container"></div></div>
 
+  <!-- ===== Auto tab ===== -->
+  <div id="auto" class="tab-content">
+    <!-- Настройки проекта -->
+    <div class="row" hidden>
+      <input id="project-path" class="in sp" placeholder="Путь к папке проекта…" readonly />
+      <button id="project-browse" class="btn">Выбрать папку…</button>
+    </div>
+	<div class="row">
+	  <input id="csv-path" class="in sp" placeholder="Путь к CSV…" readonly />
+	  <button id="csv-browse" class="btn">Выбрать CSV…</button>
+	</div>
+
+    <div class="row" hidden>
+      <label for="language-code" class="lbl" style="min-width:80px;">Выбрать язык:</label>
+      <select id="language-code" class="in">
+        <option value="">—</option>
+        <option value="fr">fr</option>
+        <option value="pt">pt</option>
+        <option value="sp">sp</option>
+      </select>
+    </div>
+	
+	<div class="row">
+	  <label for="audio-pause" class="lbl" style="min-width:80px;">Пауза между аудио (сек):</label>
+	  <input id="audio-pause" class="in" type="number" step="0.1" min="0" placeholder="0.5" />
+	</div>
+
+    <div class="button-container"></div>
+  </div>
+
+  <!-- ===== Debug tab (content from index.html) ===== -->
+  <div id="debug" class="tab-content">
+    <div class="wrap">
+      <!-- Левая колонка: JS (панель CEP) -->
+      <section class="col">
+        <h2>JS (панель CEP)</h2>
+
+        <div class="row">
+          <input id="msg-js" class="in sp" placeholder="Сообщение от JS…" />
+          <button id="send-from-js" class="btn">Отправить из JS</button>
+        </div>
+
+        <!-- Универсальный запуск программы -->
+        <div class="row">
+          <input id="prog-exe" class="in sp" placeholder="Программа / путь к исполняемому (python, powershell, cmd, C:\\Python\\python.exe)" />
+          <button id="prog-exe-browse" class="btn">Выбрать…</button>
+        </div>
+
+        <div class="row">
+          <input id="prog-file" class="in sp" placeholder="Путь к файлу (.py / .ps1 / .bat / .cmd / .exe) — опционально" />
+          <button id="prog-file-browse" class="btn">Выбрать…</button>
+        </div>
+
+        <div class="row">
+          <input id="prog-args" class="in sp" placeholder='Аргументы: --language fr --wav-path "C:\\a b.wav" --text-path "C:\\x.srt"' />
+          <button id="prog-run" class="btn">Запустить программу</button>
+        </div>
+
+        <div id="log-js" class="log" aria-live="polite"></div>
+      </section>
+
+      <!-- Правая колонка: JSX (ExtendScript) -->
+      <section class="col">
+        <h2>JSX (ExtendScript)</h2>
+
+        <div class="row">
+          <button id="send-from-jsx" class="btn">Отправить из JSX</button>
+        </div>
+
+        <!-- Синхронизация состояния JSX ⇄ CEP -->
+        <div class="row">
+          <button id="pull-state" class="btn">Загрузить состояние из JSX</button>
+          <button id="push-state" class="btn">Отправить состояние в JSX</button>
+        </div>
+
+        <div id="log-jsx" class="log" aria-live="polite"></div>
+      </section>
+
+      <!-- JavaScript (CEP runtime) -->
+      <section class="col full">
+        <h2>JavaScript редактор (CEP runtime)</h2>
+        <div class="row">
+          <textarea id="js-editor" class="in code sp" placeholder="// Этот код выполнится в контексте панели CEP (Chromium).
+  // Доступны window, document, jQuery ($), а также window.cs (CSInterface).
+  // Node.js доступен в зависимости от манифеста.
+  // Поддерживается async/await.
+  // Примеры:
+  // console.log('hello');
+  // const res = await new Promise(r=>setTimeout(()=>r('done'),500));
+  // res;"></textarea>
+        </div>
+        <div class="row">
+          <button id="run-js-code" class="btn accent">Выполнить</button>
+          <span class="muted">Ctrl/Cmd + Enter — выполнить</span>
+          <span class="sp"></span>
+        </div>
+      </section>
+
+      <!-- ExtendScript (PPro) -->
+      <section class="col full">
+        <h2>ExtendScript редактор (PPro)</h2>
+        <div class="row">
+          <textarea id="jsx-editor" class="in code sp" placeholder="// Напишите здесь код ExtendScript, который выполнится в хосте Premiere Pro (ppro).
+  /*
+  Пример:
+  var BR = $.global.CepJsxBridge;
+  var langCode = BR.state.data.languageCode;
+  alert(langCode);
+  */
+  "></textarea>
+        </div>
+        <div class="row">
+          <button id="run-jsx-code" class="btn accent">Выполнить</button>
+          <span class="muted">Ctrl/Cmd + Enter — выполнить</span>
+        </div>
+      </section>
+    </div>
+
+    <script src="./editors.js" defer></script>
+    <script src="./app.js" defer></script>
+  </div>
+
+  <!-- ===== Logic: buttons, tabs, JSX calls ===== -->
   <script>
   $(function(){
-
-    /* ===== 1. Конфигурация кнопок ===== */
+    /* 1) Конфигурация кнопок (как в index_buttons) */
     const cfg = {
       main: [
         {
           fn:'zigZagAudioClipsWithOffset',
           label:'Зиг-заг аудио',
-          title:'Выравнивание выбранных клипов зиг‑загом',
+          title:'Выравнивание выбранных клипов зиг-загом',
           params:[
             {label:'Пауза верх (c)', placeholder:'0.5', step:0.1},
             {label:'Пауза низ (c)',  placeholder:'0.3', step:0.1}
@@ -70,11 +161,11 @@
         },
         { fn:'alignSelectedVideoToAudio',
           label:'Выровнять видео по аудио',
-          title:'Выравнивание выбранных видео‑клипов по аудио'
+          title:'Выравнивание выбранных видео-клипов по аудио'
         },
         {
           fn:'glueSelectedAudioClipsAddGap',
-          label:'Склеить аудио‑клипы с паузой',
+          label:'Склеить аудио-клипы с паузой',
           params:[{label:'Пауза (c)', placeholder:'0.0', step:0.1}]
         },
         { fn:'AlignImagesToCsvMarks',
@@ -82,110 +173,70 @@
         },
         {
           fn:'AlignAudioClipsToCsvMarks',
-          label:'Выровнять аудио‑клипы по CSV',
+          label:'Выровнять аудио-клипы по CSV',
           params:[{label:'Трек эффектов', placeholder:'5', step:1, min:1}]
-        },
-        { fn:'render',
-          label:'Render to WAV',
-          file:'render.jsx'
         }
-      ],
-      test: [
-        { fn:'testFunc',
-          label:'Test Func',
-          title:'Запустить testFunc из tstScripts.jsx'
-        },
-        { fn:'testImport',
-          label:'Test import',
-          title:'Запустить testImport из tstScripts.jsx'
-        },
-        { fn:'testSelect',
-          label:'testSelect',
-          title:'Запустить testImport из tstScripts.jsx'
-        },
-        { fn:'testDeSelect',
-          label:'testDeSelect',
-          title:'Запустить testImport из tstScripts.jsx'
-        },
-		{ fn:'testExtractText',
-          label:'testExtractText',
-          title:'Запустить testImport из tstScripts.jsx'
-        },
-        { fn:'testCaption',
-          label:'Test srt',
-          title:'Запустить testCaption из tstScripts.jsx'
-        }
+		//,
+        //{ fn:'render',
+          //label:'Render to WAV',
+          //file:'render.jsx'
+        //}
       ],
       auto: [
-        { fn:'testImport',
-          label:'import',
-          title:''
-        },
-        { fn:'testPlace',
-          label:'Place all',
-          title:''
-        },
-        { fn:'testMove',
-          label:'align aud, img',
-          title:''
-        },
-        { fn:'deselectAllClips',
-          label:'deSelect',
-          title:''
-        },
-		{ fn:'testAll',
-          label:'all',
-          title:''
-        },
-        { fn:'testCaption',
-          label:'empty',
-          title:''
-        }
-      ]
+        //{ fn:'testReserve', label:'TestReserve' },
+        { fn:'auto_import',  label:'Импорт norm, img' },
+        { fn:'auto_place_vid_aud',   label:'Разместить аудио, картинки' },
+        { fn:'auto_move',    label:'Выровнять аудио, картинки' },
+        { fn:'auto_SrtCreate', label:'Создать srt из csv + импорт' },
+		//{ fn:'auto_place_srt', label:'Создать srt из csv' },
+        { fn:'auto_RenderWav', label:'RenderWav' },
+        { fn:'testAll',     label:'All' }
+      ],
     };
 
-    /* ===== 2. Рендер кнопок ===== */
-    function paramHTML(p){
-      return `<div class="param-item">
-                <label>${p.label}</label>
-                <input type="number" class="param-input"
-                       placeholder="${p.placeholder||''}"
-                       step="${p.step||1}" ${p.min?`min="${p.min}"`:''}>
-              </div>`;
-    }
+    /* 2) Рендер кнопок */
+    const paramHTML = (p) => `
+      <div class="param-item">
+        <label>${p.label}</label>
+        <input
+          type="number"
+          class="param-input"
+          placeholder="${p.placeholder||''}"
+          step="${p.step||1}"
+          ${p.min != null ? `min="${p.min}"` : ''}>
+      </div>`;
+
     function buttonHTML(item){
-      const hasParams = item.params?.length;
-      return `<div class="button-wrapper">
-                <button class="main-btn" data-fn="${item.fn}"
-                        data-file="${item.file||''}" title="${item.title||''}">
-                  ${item.label}
-                </button>
-                ${hasParams?'<button class="par-btn" title="Показать параметры">par</button>':''}
-                ${hasParams?`<div class="param-content">
-                                ${item.params.map(paramHTML).join('')}
-                              </div>`:''}
-              </div>`;
+      const hasParams = item.params && item.params.length;
+      const parBtnHTML = hasParams ? '<button class="btn par-btn" title="Показать параметры">par</button>' : '';
+      const paramsHTML = hasParams ? `<div class="param-content">${item.params.map(paramHTML).join('')}</div>` : '';
+      return `
+        <div class="button-wrapper">
+          <button class="btn main-btn" data-fn="${item.fn}"
+                  data-file="${item.file||''}" title="${item.title||''}">
+            ${item.label}
+          </button>
+          ${parBtnHTML}
+          ${paramsHTML}
+        </div>`;
     }
+
     $.each(cfg, (tab, items)=>{
       const $container = $('#'+tab+' .button-container');
-      items.forEach(it => $container.append(buttonHTML(it)));
+      if ($container.length) items.forEach(it => $container.append(buttonHTML(it)));
     });
 
-    /* ===== 3. UI‑логика ===== */
-    // tabs
+    /* 3) UI: tabs + параметры */
     $('.tab-button').on('click', function(){
-      $('.tab-button').removeClass('active');
-      $(this).addClass('active');
+      $('.tab-button').removeClass('active'); $(this).addClass('active');
       const t=$(this).data('tab');
-      $('.tab-content').removeClass('active');
-      $('#'+t).addClass('active');
+      $('.tab-content').removeClass('active'); $('#'+t).addClass('active');
     });
-    // раскрытие параметров
     $(document).on('click','.par-btn',function(){
       $(this).closest('.button-wrapper').toggleClass('expanded');
     });
 
-    /* ===== 4. Вызов JSX ===== */
+    /* 4) Вызов JSX */
     const cs = new CSInterface();
     $(document).on('click','.main-btn',function(){
       const fn   = $(this).data('fn');
@@ -195,12 +246,10 @@
                       .map((_,el)=>parseFloat(el.value||0))
                       .get()
                       .join(',');
-
       const jsxPath = cs.getSystemPath(SystemPath.EXTENSION) + '/jsx/' + file;
       const cmd     = `$.evalFile("${jsxPath}"); ${fn}(${params});`;
       cs.evalScript(cmd);
     });
-
   });
   </script>
 </body>

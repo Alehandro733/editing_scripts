@@ -1,0 +1,96 @@
+/* app.css — unified styles for buttons panel + debug panel */
+/* base theme */
+:root {
+  --bg:#1e1e1e; --fg:#eaeaea; --muted:#9aa0a6; --accent:#4aa3ff;
+  --card:#2a2a2a; --br:#3a3a3a; --hover:#343434; --hover2:#3b3b3b;
+}
+* { box-sizing:border-box }
+html,body { height:100% }
+body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu;
+       background:var(--bg); color:var(--fg); }
+
+/* headings */
+h2 { margin:12px 0 8px }
+
+/* grid blocks (from original debug app.css) */
+.wrap { display:grid; grid-template-columns: 1fr 1fr; gap:12px; padding:14px }
+.col { background:var(--card); border:1px solid var(--br); border-radius:12px; padding:12px }
+.col.full { grid-column: 1 / -1 }
+.row { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0 }
+
+/* controls */
+.btn {
+  cursor:pointer; border:1px solid var(--br); background:#333; color:var(--fg);
+  padding:8px 10px; border-radius:10px; font-size:13px; transition:.2s;
+}
+.btn:hover { background:var(--hover); border-color:#4aa3ff77 }
+.btn.accent { background:var(--accent); color:#09111a; border-color:#2a74c9 }
+.in {
+  background:#111; color:var(--fg); border:1px solid var(--br);
+  border-radius:10px; padding:8px; font-size:13px; min-width:220px
+}
+.log {
+  height:240px; background:#121212; border:1px solid var(--br); border-radius:10px;
+  padding:10px; overflow:auto; white-space:pre-wrap;
+  font-family:ui-monospace, Menlo, Consolas, monospace; font-size:12px
+}
+.code {
+  height:260px; background:#0b0b0b; white-space:pre; overflow:auto;
+  font-family:ui-monospace, Menlo, Consolas, monospace; tab-size:2
+}
+.muted { color:var(--muted); font-size:12px; align-self:center }
+.sp { flex:1 1 auto }
+
+/* ===== Tabs (for unified panel) ===== */
+.tabs {
+  display:flex; gap:2px; margin:12px 14px; padding-bottom:6px;
+  border-bottom:1px solid var(--br);
+}
+.tab-button {
+  padding:8px 14px; background:none; border:none; border-bottom:2px solid transparent;
+  color:var(--fg); cursor:pointer; font-size:14px; border-radius:8px 8px 0 0;
+}
+.tab-button:hover { background:var(--hover) }
+.tab-button.active { border-color:var(--accent); background:var(--hover2) }
+.tab-content { display:none; padding:0 14px 14px }
+.tab-content.active { display:block }
+
+/* ===== Button list (from index_buttons) ===== */
+.button-container { display:flex; flex-direction:column; gap:12px; width:100% }
+
+/* контейнер вокруг кнопки — делаем «плоским» */
+.button-wrapper {
+  position:relative;
+  background:none;           /* было: var(--card) */
+  border:none;               /* было: 1px solid var(--br) */
+  border-radius:0;           /* было: 12px */
+  padding:0;                 /* было: 12px */
+  overflow:visible;          /* было: hidden */
+  transition:.2s;
+}
+.button-wrapper:hover { background:none; } /* было: #2f2f2f */
+
+.main-btn.btn { width:100%; text-align:left; border-radius:8px; background:#303030 }
+
+.par-btn.btn {
+  position:absolute; top:6px; right:6px;       /* было: 12px / 12px */
+  padding:4px 8px; font-size:12px;
+}
+
+/* разделитель над параметрами убран */
+.param-content {
+  margin-top:10px;
+  border-top:none;           /* было: 1px solid var(--br) */
+  padding-top:8px;           /* было: 10px */
+  display:none
+}
+.button-wrapper.expanded .param-content { display:flex; flex-wrap:wrap; gap:12px }
+.param-item { flex:0 1 160px }
+.param-item label { display:block; margin-bottom:4px; font-size:12px; color:#ccc }
+.param-input { width:100%; padding:6px; background:#111; border:1px solid var(--br); border-radius:8px; color:var(--fg) }
+
+/* header for the buttons section */
+.header-bar { display:flex; align-items:center; gap:12px; padding:14px }
+.header-title { font-size:16px; opacity:.9 }
+
+[hidden] { display: none !important; }

@@ -29,28 +29,28 @@ def convert_srt_to_txt(srt_path):
     return tf.name
 
 def main():
-    parser = argparse.ArgumentParser(description='Запустить MFA-пайплайн и сгенерировать SRT-файл.')
+    parser = argparse.ArgumentParser(description='Run MFA pipeline and generate an SRT file.')
 
     parser.add_argument('-l', '--language', required=True,
-                        help='Код языка (например, fr, en, ru, pt)')
+                        help='Language code (e.g., fr, en, ru, pt)')
     parser.add_argument('-w', '--wav-path', required=True, dest='wav_path',
-                        help='Путь до WAV-файла')
+                        help='Path to WAV file')
     parser.add_argument('-t', '--text-path', required=True, dest='text_path',
-                        help='Путь до txt/srt текстового файла с расшифровкой')
+                        help='Path to txt/srt transcript file')
     parser.add_argument('-j', '--output-json', required=True, dest='output_json',
-                        help='Куда сохранить выходной JSON с таймингами')
+                        help='Path to save output JSON with timings')
     parser.add_argument('-s', '--output-srt', required=True, dest='output_srt',
-                        help='Куда сохранить выходной SRT')
+                        help='Path to save output SRT')
     parser.add_argument('-b', '--base-color', required=True, dest='base_color',
-                        help='Базовый (background) цвет субтитров, hex без #')
+                        help='Base (background) subtitle color, hex without #')
     parser.add_argument('-c', '--highlight-color', required=True, dest='highlight_color',
-                        help='Цвет подсветки субтитров, hex без #')
+                        help='Highlight subtitle color, hex without #')
 
     args = parser.parse_args()
 
     # Если на вход пришёл SRT — конвертируем его в TXT
     if args.text_path.lower().endswith('.srt'):
-        print(f"Detected SRT input. Converting '{args.text_path}' to plain TXT…")
+        print(f"Detected SRT input. Converting '{args.text_path}' to plain TXT...")
         mfa_text_path = convert_srt_to_txt(args.text_path)
     else:
         mfa_text_path = args.text_path
@@ -59,11 +59,12 @@ def main():
         "fr": "french_mfa",
         "en": "english_us_mfa310",
         "ru": "russian_mfa",
-        "pt": "portuguese_mfa200a"
+        "pt": "portuguese_mfa200a",
+        "sp": "spanish_mfa200a"
     }
 
     if args.language not in lang_map:
-        print(f"Ошибка: неподдерживаемый код языка '{args.language}'. Допустимые: {', '.join(lang_map.keys())}")
+        print(f"Error: unsupported language code '{args.language}'. Allowed: {', '.join(lang_map.keys())}")
         sys.exit(1)
 
     base_name = lang_map[args.language]
@@ -75,6 +76,7 @@ def main():
     model_path   = os.path.join(script_dir, "dic", f"{base_name}.zip")
 
     # Формируем команду MFA с учётом возможного преобразования
+    # можно так же добавить f'--quiet' чтобы не получать выводов
     mfa_command = (
         f'CALL "{activate_bat}" "{env_path}" && '
         f'mfa align_one --clean --overwrite --use_mp --num_jobs 8 '
@@ -84,10 +86,15 @@ def main():
         f'--beam 100 --retry_beam 400'
     )
 
-    print("Running MFA align_one…")
-    result = subprocess.run(mfa_command, shell=True)
+    print("Running MFA align_one...")
+
+    #отключаем уведомление/уведомления
+    env = os.environ.copy()
+    env["PYTHONWARNINGS"] = "ignore::UserWarning:praatio.utilities.utils"
+
+    result = subprocess.run(mfa_command, shell=True, env=env)
     if result.returncode != 0:
-        sys.exit("Ошибка при выполнении MFA. Генерация SRT не выполнена.")
+        sys.exit("Error while running MFA. SRT generation aborted.")
 
     # Генерация финального SRT — логика не изменилась, всегда берёт оригинальный text_path
     srt_script = os.path.join(script_dir, "mfa_make_srt.py")
@@ -100,7 +107,7 @@ def main():
         "-b", args.base_color
     ]
 
-    print("Generating SRT…")
+    print("Generating SRT...")
     subprocess.run(srt_command)
 
     # Убираем временный файл, если он был создан

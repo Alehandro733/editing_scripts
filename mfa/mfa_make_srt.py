@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Скрипт для генерации SRT‑субтитров c подсветкой караоке
-(принимает на вход TXT или SRT + JSON‑тайминги из MFA)
+Скрипт для генерации SRT-субтитров c подсветкой караоке
+(принимает на вход TXT или SRT + JSON-тайминги из MFA)
 
 v14 – рефакторинг parse_srt и parse_txt: общая функция tokenize_lines убирает дублирование,
        сохраняется логика сбора block_starts для SRT.
@@ -56,7 +56,7 @@ def normalize_token(token: str) -> str:
 
 
 def remove_tags(text: str) -> str:
-    """Удаляет любые HTML/XML‑теги"""
+    """Удаляет любые HTML/XML-теги"""
     return re.sub(r'<[^>]+>', '', text)
 
 # ---------------------------------------------------------------------------
@@ -261,11 +261,11 @@ def process(text: List[str], tok: List[str], idx: List[int]) -> List[Tuple[Optio
     i = j = 0
     while i < len(text):
         if j >= len(tok):
-            sys.exit(f"[ERROR] JSON‑токены закончились на слове #{i}: '{text[i]}'")
+            sys.exit(f"[ERROR] Ran out of JSON tokens at word #{i}: '{text[i]}'")
         handler = handle_unk if tok[j] == '<unk>' else handle_tok
         ok, block = handler(text, tok, i, j)
         if not ok or block is None:
-            sys.exit(f"[ERROR] Не удалось сопоставить слово #{i} '{text[i]}' / токен #{j} '{tok[j]}'")
+            sys.exit(f"[ERROR] Failed to align word #{i} '{text[i]}' with token #{j} '{tok[j]}'")
         for ti, sj, ej in block:
             if sj is None:
                 res[ti] = (None, None)
@@ -433,7 +433,7 @@ def write_srt(lines, spans, timings,
                         is_last=seg['is_last']
                     )
                 f.write(html + '\n\n')
-        print(f"SRT файл создан: {output_path}")
+        print(f"SRT file created: {output_path}")
 
     # ---- pipeline ----
     raw   = build_segments()
@@ -445,19 +445,19 @@ def write_srt(lines, spans, timings,
 # ---------------------------------------------------------------------------
 
 def main():
-    ap = argparse.ArgumentParser(description="Генерация караоке‑SRT")
-    ap.add_argument('-j', '--json', required=True, help="JSON c таймингами")
-    ap.add_argument('-t', '--text', required=True, help="TXT или SRT‑транскрипт")
-    ap.add_argument('-o', '--output', required=True, help="выходной SRT")
+    ap = argparse.ArgumentParser(description="Generate karaoke-style SRT")
+    ap.add_argument('-j', '--json', required=True, help="JSON with timings")
+    ap.add_argument('-t', '--text', required=True, help="TXT or SRT transcript")
+    ap.add_argument('-o', '--output', required=True, help="output SRT path")
     ap.add_argument('-c', '--highlight-color', dest='highlight_color', default='2DE471',
-                   help="цвет выделения (6 hex-цифр без '#'), пример: 2DE471")
+                   help="highlight color (6 hex digits without '#'), e.g. 2DE471")
     ap.add_argument('-b', '--base-color', dest='base_color', default='FFFFFF',
-                   help="цвет основного текста (6 hex-цифр без '#'), пример: FFFFFF")
+                   help="base text color (6 hex digits without '#'), e.g. FFFFFF")
     args = ap.parse_args()
     # проверка кодов
     for val, name in ((args.highlight_color, 'highlight_color'), (args.base_color, 'base_color')):
         if not re.fullmatch(r'[0-9A-Fa-f]{6}', val):
-            sys.exit(f"Неверный код `{name}`: '{val}'. Ожидается 6 hex-символов без '#'.")
+            sys.exit(f"Invalid `{name}`: '{val}'. Expected 6 hex characters without '#'.")
 
     json_entries = parse_json(args.json)
     lines, txt_words, spans, starts = parse_input(args.text)
@@ -470,7 +470,7 @@ def main():
     timings = []
     for st, ed in result:
         if st is None or ed is None:
-            sys.exit(f"[ERROR] Нет таймингов для слова с индексом: {st}")
+            sys.exit(f"[ERROR] No timings for word index: {st}")
         start_time = json_entries[st]['start_time']
         end_time = json_entries[ed]['end_time']
         timings.append((start_time, end_time))
