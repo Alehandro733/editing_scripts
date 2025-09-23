@@ -3,6 +3,7 @@
 function __noop_bootstrap__(){ return "OK"; }
 // Кол-во "тиков" в секунде у Premiere:
 var TICKS_PER_SECOND = 254016000000;
+var seq = app.project.activeSequence;
 
 /********************
  * ОБЩИЕ УТИЛИТЫ 
@@ -1294,6 +1295,7 @@ function setInOutFromSelectedAudioClips() {
 
     // Ставим In/Out секвенции в тиках
     seq.setInPoint(secondsToTicksString(minStart));
+    //seq.setInPoint(secondsToTicksString(0)); //ВРЕМЕННО ИЗМЕНИЛ. Сейчас inpoint всегда в самом начале секвенции
     seq.setOutPoint(secondsToTicksString(maxEnd));
 }
 
@@ -1431,6 +1433,8 @@ function auto_RenderWav() {
     deselectAllClips();
     selectClips(getClipsOnTrack("audio", 0));
     setInOutFromSelectedAudioClips();
+    seq.setInPoint(secondsToTicksString(0))
+
     muteAllAudioExcept([0]);
 
     exportVoiceWav();

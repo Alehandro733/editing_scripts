@@ -15,6 +15,7 @@ from tkinter import filedialog
 TARGET_LUFS = -20.0
 AUDIO_EXTENSIONS = ('.wav', '.mp3')
 NORMALIZED_FOLDER = "normalized"
+LANG_TAGS = {"fr", "en", "ru", "sp", "pt"}  # допустимые языковые теги
 
 # ────────────────────── CSV & файлы ─────────────────────
 def find_column_index(csv_path: str, possible_headers: List[str], delimiter: str = ",") -> Optional[int]:
@@ -47,10 +48,11 @@ def collect_audio_files(folder: str) -> List[str]:
         if f.lower().endswith(AUDIO_EXTENSIONS)
     ]
     # Сортируем по числовому значению первого вхождения цифр в имени файла
+    # (предполагается, что в имени есть цифры; иначе можно заменить на безопасную сортировку)
     files.sort(key=lambda x: int(re.search(r'\d+', x).group()))
     return files
 
-# ──────────────────── Аудио‑обработка ──────────────────
+# ──────────────────── Аудио-обработка ──────────────────
 def load_audio(path: str):
     ext = os.path.splitext(path)[1].lower()
     audio = AudioSegment.from_mp3(path) if ext == ".mp3" else AudioSegment.from_wav(path)
@@ -64,14 +66,26 @@ def normalize_audio(data, rate, target_lufs=TARGET_LUFS):
     gain_db = target_lufs - meter.integrated_loudness(data)
     return data * (10 ** (gain_db / 20))
 
-def format_output_name(speaker: str, idx: Optional[int], ext: str = "wav") -> str:
+def format_output_name(speaker: str,
+                       idx: Optional[int],
+                       ext: str = "wav",
+                       lang_tag: Optional[str] = None) -> str:
     """
     Формирует имя выходного файла.
-    Если idx не None — добавляется префикс-номер, иначе только имя спикера.
+    Если idx не None — добавляется префикс-номер, и при наличии lang_tag добавляется он.
+    Примеры:
+      idx=1, lang_tag='fr', speaker='emma' -> 001_fr_emma.wav
+      idx=1, lang_tag=None,  speaker='emma' -> 001_emma.wav
+      idx=None, speaker='emma' -> emma.wav
     """
-    base = f"{speaker}"
     if idx is not None:
-        base = f"{idx:03d}_{base}"
+        parts = [f"{idx:03d}"]
+        if lang_tag:
+            parts.append(lang_tag)
+        parts.append(speaker)
+        base = "_".join(parts)
+    else:
+        base = f"{speaker}"
     return f"{base}.{ext}"
 
 def save_normalized(in_path: str, out_path: str, idx: Optional[int], speaker: str) -> None:
@@ -93,7 +107,7 @@ def select_csv(parent: str) -> Optional[str]:
     if len(csv_files) == 1:
         print(f"Автоматически выбран CSV: {csv_files[0]}")
         return csv_files[0]
-    print(f"Найдено {len(csv_files)} CSV‑файлов в {parent}. Выберите нужный (или отмена):")
+    print(f"Найдено {len(csv_files)} CSV-файлов в {parent}. Выберите нужный (или отмена):")
     path = ask_file(parent, "*.csv")
     return path if path else None
 
@@ -103,6 +117,14 @@ def prepare_dst(src_dir: str) -> Tuple[str, str]:
     dst_dir = os.path.join(parent, NORMALIZED_FOLDER)
     os.makedirs(dst_dir, exist_ok=True)
     return parent, dst_dir
+
+def detect_lang_tag_from_dir(src_dir: str) -> Optional[str]:
+    """
+    Возвращает языковой тег (fr/en/ru/sp/pt), если имя нижней папки совпадает с одним из них (без учёта регистра).
+    Иначе возвращает None.
+    """
+    last = os.path.basename(os.path.normpath(src_dir)).lower()
+    return last if last in LANG_TAGS else None
 
 def verify_counts(audio_files: List[str], speakers: List[str]) -> None:
     if len(audio_files) != len(speakers):
@@ -137,13 +159,19 @@ def process_batch(src_dir: str, dst_dir: str, csv_path: Optional[str]) -> None:
     # Флаг: использовать ли префикс-номер
     use_counter = csv_valid
 
+    # Определим языковой тег по имени нижней папки
+    lang_tag = detect_lang_tag_from_dir(src_dir)
+
     for idx, (fname, spk) in enumerate(zip(audio_files, speakers), start=1):
-        # генерируем имя: если use_counter=False, передаем idx=None
-        out_name = format_output_name(spk, idx if use_counter else None)
+        # добавляем язык ТОЛЬКО если есть счётчик (как вы просили — «после счетчика»)
+        effective_idx = idx if use_counter else None
+        effective_lang = lang_tag if use_counter else None
+
+        out_name = format_output_name(spk, effective_idx, ext="wav", lang_tag=effective_lang)
         in_path = os.path.join(src_dir, fname)
         out_path = os.path.join(dst_dir, out_name)
         try:
-            save_normalized(in_path, out_path, idx if use_counter else None, spk)
+            save_normalized(in_path, out_path, effective_idx, spk)
         except Exception as e:
             print(f"   ❌  Ошибка «{fname}»: {e}")
 
