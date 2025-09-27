@@ -236,20 +236,36 @@
   }
 
   function onPproTimingsReady(evt) {
-    const jsonPath = typeof evt.data === 'string' ? evt.data : (evt && evt.data && evt.data.path);
-    logJS('PPRO: готов JSON таймингов: ' + (jsonPath || '(пусто)'));
-    if (!jsonPath) return;
+  const jsonPath = typeof evt.data === 'string' ? evt.data : (evt && evt.data && evt.data.path);
+  logJS('PPRO: готов JSON таймингов: ' + (jsonPath || '(пусто)'));
+  if (!jsonPath) return;
 
-    try {
-      const chosenCsv = $.trim($csvPath.val() || cachedState && cachedState.data && cachedState.data.csvPath || '');
-      const out = buildSrtFromJsonAndCsv(jsonPath, chosenCsv);
-      if (out) {
-        logJS('✅ SRT создан: ' + out);
-      }
-    } catch (e) {
-      logJS('❌ Ошибка сборки SRT: ' + (e && e.message ? e.message : e));
+  try {
+    const chosenCsv =
+      $.trim($csvPath.val() || (cachedState && cachedState.data && cachedState.data.csvPath) || '');
+
+    if (!chosenCsv) {
+      logJS('⚠️ CSV не выбран. Укажите путь к CSV и повторите.');
+      return;
     }
+
+    const outPaths = srtBuildingModule.buildSrtFromJsonAndCsv(jsonPath, chosenCsv);
+
+    if (Array.isArray(outPaths) && outPaths.length) {
+      // Красивый вывод: нумерованный список путей
+      const pretty = outPaths
+        .map((p, i) => `${i + 1}. ${p}`)
+        .join('\n');
+
+      logJS('✅ SRT-файлы созданы (' + outPaths.length + '):\n' + pretty);
+    } else {
+      logJS('⚠️ Подходящие колонки не найдены или все пустые — SRT не создан.');
+    }
+  } catch (e) {
+    logJS('❌ Ошибка сборки SRT: ' + (e && e.message ? e.message : e));
   }
+}
+
 
   // Подписки
   cs.addEventListener(EVENT_TYPE,    onEcho);
@@ -532,82 +548,30 @@ if ($csvBrowse && $csvBrowse.length) {
     });
   }
 
-  // Основная функция: JSON + CSV(French) → SRT
-  // function buildSrtFromJsonAndCsv(jsonPath, csvPath) {
-    // const fs = require('fs');
-    // const path = require('path');
-
-  // // 1) читаем JSON таймингов
-    // if (!fs.existsSync(jsonPath)) throw new Error('JSON не найден: ' + jsonPath);
-    // const timings = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-    // const starts = Array.isArray(timings.start) ? timings.start : [];
-    // const ends   = Array.isArray(timings.end)   ? timings.end   : [];
-    // if (!starts.length || !ends.length) throw new Error('В JSON пустые массивы start/end');
-
-  // // 2) читаем CSV и берём колонку French
-    // if (!fs.existsSync(csvPath)) throw new Error('CSV не найден: ' + csvPath);
-    // const csvRaw = fs.readFileSync(csvPath, 'utf8');
-    // const { rows, headerMap } = parseCSV(csvRaw);
-
-    // if (!rows.length) throw new Error('CSV пуст');
-    // if (headerMap.French === undefined) throw new Error('В CSV нет колонки "French"');
-
-    // const frenchCol = headerMap.French;
-
-  // // собираем строки, пропуская заголовок (row 0)
-    // const lines = [];
-    // for (let r = 1; r < rows.length; r++) {
-      // const cell = rows[r][frenchCol];
-      // const text = (cell == null ? '' : String(cell)).trim();
-      // if (text) lines.push(text);
-    // }
-
-  // // 3) склеиваем SRT: берём минимальную длину
-    // const count = Math.min(starts.length, ends.length, lines.length);
-    // if (!count) throw new Error('Нет пересечения данных: timings/CSV (French)');
-
-    // let srt = '';
-    // for (let i = 0; i < count; i++) {
-      // srt += (i + 1) + '\n'
-          // +  formatSrtTime(starts[i]) + ' --> ' + formatSrtTime(ends[i]) + '\n'
-          // +  lines[i] + '\n\n';
-    // }
-
-  // // 4) пишем в /temp/subtitles.srt (в корне расширения)
-    // const extRoot = cs.getSystemPath(SystemPath.EXTENSION);
-    // const outDir = path.join(extRoot, 'temp');
-    // if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
-
-    // const outPath = path.join(outDir, 'subtitles.srt');
-    // fs.writeFileSync(outPath, srt, 'utf8');
-
-    // return outPath.replace(/\\/g,'/');
-  // }
-  
-  // Основная функция: JSON + CSV(все колонки) → SRT(ы)
-function buildSrtFromJsonAndCsv(jsonPath, csvPath) {
+ 
+// ============================================================================
+// 12) SRT Builder Module (локальный объект, без глобалов)
+// ============================================================================
+const srtBuildingModule = (function(){
   const fs   = require('fs');
   const path = require('path');
 
-  // --- helpers ---
+  // ---------- ХЕЛПЕРЫ (инкапсулированы) ----------
   function sanitizeFilename(name) {
-    // убираем недопустимые для файловой системы символы и точки в конце
     return String(name)
       .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')
       .replace(/\.+$/,'')
       .trim() || 'column';
   }
 
+  // SRT-текст из строк и таймингов (end[i] = start[i+1], у последнего — ends[i])
   function buildSrtText(lines, starts, ends) {
-    var count = Math.min(starts.length, ends.length, lines.length);
-    if (!count) return ''; // пусть вызывающий решает, что делать с пустым
-
-    var srt = '';
-    for (var i = 0; i < count; i++) {
-      var startTime = starts[i];
-      // новый принцип таймингов: конец i = начало i+1, последний — как было
-      var endTime = (i < count - 1) ? starts[i + 1] : ends[i];
-
+    const count = Math.min(starts.length, ends.length, lines.length);
+    if (!count) return '';
+    let srt = '';
+    for (let i = 0; i < count; i++) {
+      const startTime = starts[i];
+      const endTime   = (i < count - 1) ? starts[i + 1] : ends[i];
       srt += (i + 1) + '\n'
           +  formatSrtTime(startTime) + ' --> ' + formatSrtTime(endTime) + '\n'
           +  lines[i] + '\n\n';
@@ -615,88 +579,158 @@ function buildSrtFromJsonAndCsv(jsonPath, csvPath) {
     return srt;
   }
 
-  // 1) читаем JSON таймингов
-  if (!fs.existsSync(jsonPath)) throw new Error('JSON не найден: ' + jsonPath);
-  var timings = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-  var starts = Array.isArray(timings.start) ? timings.start : [];
-  var ends   = Array.isArray(timings.end)   ? timings.end   : [];
-  if (!starts.length || !ends.length) throw new Error('В JSON пустые массивы start/end');
-
-  // 2) читаем CSV
-  if (!fs.existsSync(csvPath)) throw new Error('CSV не найден: ' + csvPath);
-  var csvRaw = fs.readFileSync(csvPath, 'utf8');
-  var parsed = parseCSV(csvRaw); // ожидается { rows, headerMap }
-  var rows = parsed.rows;
-  var headerMap = parsed.headerMap || {};
-  if (!rows || !rows.length) throw new Error('CSV пуст');
-
-  // --- базовый (как раньше) SRT в /temp/subtitles.srt по колонке French ---
-  if (headerMap.French === undefined) throw new Error('В CSV нет колонки "French"');
-  var frenchCol = headerMap.French;
-
-  var baseLines = [];
-  for (var r = 1; r < rows.length; r++) {
-    var cell = rows[r][frenchCol];
-    var text = (cell == null ? '' : String(cell)).trim();
-    if (text) baseLines.push(text);
+  function readAndValidateTimings(jsonPath) {
+    if (!fs.existsSync(jsonPath)) throw new Error('JSON не найден: ' + jsonPath);
+    const timings = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+    const starts = Array.isArray(timings.start) ? timings.start : [];
+    const ends   = Array.isArray(timings.end)   ? timings.end   : [];
+    if (!starts.length || !ends.length) throw new Error('В JSON пустые массивы start/end');
+    if (starts.length !== ends.length) throw new Error('В JSON количество start не равно количеству end');
+    return { starts, ends };
   }
 
-  var baseSrt = buildSrtText(baseLines, starts, ends);
-  if (!baseSrt) throw new Error('Нет пересечения данных: timings/CSV (French)');
+  function readAndParseCsv(csvPath) {
+    if (!fs.existsSync(csvPath)) throw new Error('CSV не найден: ' + csvPath);
+    const csvRaw = fs.readFileSync(csvPath, 'utf8');
+    const parsed = parseCSV(csvRaw); // используем ваш парсер из секции 9
+    const rows = parsed && parsed.rows || [];
+    const headerMap = parsed && parsed.headerMap || {};
+    if (!rows.length) throw new Error('CSV пуст');
+    const headerRow = rows[0] || [];
+    return { rows, headerMap, headerRow };
+  }
 
-  // 3) пишем в /temp/subtitles.srt (в корне расширения)
-  var extRoot = cs.getSystemPath(SystemPath.EXTENSION);
-  var outDir  = path.join(extRoot, 'temp');
-  if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+  function collectEligibleColumns(rows, headerMap, headerRow, bannedSet) {
+    const cols = [];
+    for (let c = 0; c < headerRow.length; c++) {
+      const name = headerRow[c];
+      if (name == null) continue;
 
-  var outPath = path.join(outDir, 'subtitles.srt');
-  fs.writeFileSync(outPath, baseSrt, 'utf8');
+      const displayName = String(name);
+      const lc = displayName.toLowerCase().trim();
+      if (!lc || bannedSet.has(lc)) continue;
 
-  // 4) Дополнительно: создаём SRT для каждой колонки CSV (кроме запрещённых)
-  var banned = { images: true, audio: true }; // сравнение по lower-case
-  var csvDir = path.dirname(csvPath);
+      let idx = c;
+      if (headerMap[displayName] !== undefined) idx = headerMap[displayName];
 
-  // Проходим по колонкам в порядке заголовка (строка 0)
-  var headerRow = rows[0] || [];
-  for (var c = 0; c < headerRow.length; c++) {
-    var colName = headerRow[c];
-    if (colName == null) continue;
+      const lines = [];
+      for (let r = 1; r < rows.length; r++) {
+        const cell = rows[r][idx];
+        const txt = (cell == null ? '' : String(cell)).trim();
+        if (txt) lines.push(txt);
+      }
+      cols.push({ name: displayName, index: idx, lines, nonEmptyCount: lines.length });
+    }
+    return cols;
+  }
 
-    var colIndex = c;
-    // если headerMap есть — убеждаемся, что индекс совпадает
-    // (если парсер меняет порядок, используем headerMap)
-    if (headerMap[colName] !== undefined) colIndex = headerMap[colName];
+  function ensureColumnsPresenceOrThrow(eligibleCols) {
+    if (!eligibleCols.length) {
+      throw new Error('В CSV нет подходящих колонок (пустые заголовки или только из бан-листа).');
+    }
+  }
 
-    var lc = String(colName).toLowerCase().trim();
-    if (!lc) continue;
-    if (banned[lc]) continue; // пропускаем запрещённые
+  function ensureAtLeastOneMatchesStartsOrThrow(eligibleCols, startsCount) {
+    const ok = eligibleCols.some(col => col.nonEmptyCount === startsCount);
+    if (!ok) {
+      const csvNames = eligibleCols.map(c => c.name).join(', ');
+      throw new Error(
+        `Ни одна колонка из [${csvNames}] не имеет количество строк, равное ${startsCount} (количество аудио клипов).`
+      );
+    }
+  }
 
-    // собираем непустые строки по колонке
-    var lines = [];
-    for (var rr = 1; rr < rows.length; rr++) {
-      var cellVal = rows[rr][colIndex];
-      var txt = (cellVal == null ? '' : String(cellVal)).trim();
+  function writeFileSafe(absPath, content) {
+    try { fs.writeFileSync(absPath, content, 'utf8'); return true; }
+    catch (e) { if (console && console.warn) console.warn(`Не удалось записать файл "${absPath}": ${e.message}`); return false; }
+  }
+
+  function getExtensionTempPath() {
+    const extRoot = cs.getSystemPath(SystemPath.EXTENSION);
+    const outDir  = path.join(extRoot, 'temp');
+    if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+    return outDir;
+  }
+
+  // ---------- ПУБЛИЧНЫЕ ФУНКЦИИ ----------
+  /**
+   * МНОГО: создаёт SRT-файлы для всех подходящих колонок рядом с CSV.
+   * Нет требования «French». Нет базового файла в корне расширения.
+   * Требует: starts.length === ends.length и хотя бы одна колонка с длиной == startsCount.
+   * @returns {string[]} пути созданных файлов
+   */
+  function buildSrtFromJsonAndCsv(jsonPath, csvPath) {
+    const { starts, ends } = readAndValidateTimings(jsonPath);
+    const startsCount = starts.length;
+
+    const { rows, headerMap, headerRow } = readAndParseCsv(csvPath);
+    const bannedSet = new Set(['images', 'audio']);
+    const eligibleCols = collectEligibleColumns(rows, headerMap, headerRow, bannedSet);
+
+    ensureColumnsPresenceOrThrow(eligibleCols);
+    ensureAtLeastOneMatchesStartsOrThrow(eligibleCols, startsCount);
+
+    const csvDir = path.dirname(csvPath);
+    const created = [];
+
+    for (const col of eligibleCols) {
+      const srtText = buildSrtText(col.lines, starts, ends);
+      if (!srtText) continue;
+      const safeName = sanitizeFilename(col.name) + '.srt';
+      const outPath = path.join(csvDir, safeName);
+      if (writeFileSafe(outPath, srtText)) created.push(outPath.replace(/\\/g, '/'));
+    }
+    return created;
+  }
+
+  /**
+   * ОДИН: создаёт SRT по заданной колонке в <EXT>/temp/subtitles.srt.
+   * Требует присутствия колонки и точного совпадения длины с startsCount.
+   * @returns {string} путь к файлу
+   */
+  function buildSingleSrtFromJsonAndCsvInsideExtention(jsonPath, csvPath, targetCsvTitle) {
+    if (targetCsvTitle == null || String(targetCsvTitle).trim() === '') {
+      throw new Error('Не задан targetCsvTitle');
+    }
+    const targetName = String(targetCsvTitle);
+
+    const { starts, ends } = readAndValidateTimings(jsonPath);
+    const startsCount = starts.length;
+
+    const { rows, headerMap, headerRow } = readAndParseCsv(csvPath);
+    let colIndex = undefined;
+    if (headerMap[targetName] !== undefined) colIndex = headerMap[targetName];
+    else {
+      const pos = headerRow.findIndex(h => String(h) === targetName);
+      if (pos !== -1) colIndex = pos;
+    }
+    if (colIndex === undefined) throw new Error(`В CSV нет колонки "${targetName}"`);
+
+    const lines = [];
+    for (let r = 1; r < rows.length; r++) {
+      const cell = rows[r][colIndex];
+      const txt = (cell == null ? '' : String(cell)).trim();
       if (txt) lines.push(txt);
     }
-
-    var srtText = buildSrtText(lines, starts, ends);
-    if (!srtText) continue; // колонка пустая/не пересекается — не создаём файл
-
-    var safeName = sanitizeFilename(colName) + '.srt';
-    var colOutPath = path.join(csvDir, safeName);
-    try {
-      fs.writeFileSync(colOutPath, srtText, 'utf8');
-    } catch (e) {
-      // Без падения общего процесса: логируем в консоль CEP
-      if (typeof console !== 'undefined' && console.warn) {
-        console.warn('Не удалось записать SRT для колонки "' + colName + '": ' + e.message);
-      }
+    if (lines.length !== startsCount) {
+      throw new Error(`Колонка "${targetName}" имеет ${lines.length} непустых строк, что не равно ${startsCount} (количество аудио клипов).`);
     }
+
+    const srt = buildSrtText(lines, starts, ends);
+    if (!srt) throw new Error(`Нет пересечения данных: timings/CSV ("${targetName}")`);
+
+    const outDir  = getExtensionTempPath();
+    const outPath = path.join(outDir, 'subtitles.srt');
+    if (!writeFileSafe(outPath, srt)) throw new Error('Не удалось записать итоговый SRT: ' + outPath);
+    return outPath.replace(/\\/g, '/');
   }
 
-  // Возвращаем как и раньше путь к базовому файлу
-  return outPath.replace(/\\/g, '/');
-}
+  // Возвращаем публичный API, хелперы остаются внутри
+  return {
+    buildSrtFromJsonAndCsv,
+    buildSingleSrtFromJsonAndCsvInsideExtention
+  };
+})();
 
 
   // ============================================================================
