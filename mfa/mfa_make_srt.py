@@ -276,7 +276,7 @@ def process(text: List[str], tok: List[str], idx: List[int]) -> List[Tuple[Optio
     return res
 
 # ---------------------------------------------------------------------------
-# ГЕНЕРАЦИЯ SRT С ДВУМЯ ЦВЕТАМИ
+# ГЕНЕРАЦИЯ SRT С ДВУМЯ ЦВЕТАМИ (обновлено)
 # ---------------------------------------------------------------------------
 
 def write_srt(lines, spans, timings,
@@ -293,25 +293,31 @@ def write_srt(lines, spans, timings,
             lines2words.setdefault(li, []).append((wi, si, ei))
 
         segs = []
-        for li, words in lines2words.items():
+        # гарантируем порядок строк
+        for li in sorted(lines2words.keys()):
+            words = lines2words[li]
             n = len(words)
             for pos, (wi, si, ei) in enumerate(words):
-                # точка окончания подсветки:
-                #  – начало след. слова (trim-позже)        – если есть след. слово
-                #  – конец строки                           – если слова последнее
+                # символная граница подсветки
                 if pos < n - 1:
-                    seg_end = words[pos + 1][1]        # start of next word
+                    seg_end = words[pos + 1][1]                  # start of next word (символьный индекс)
+                    end_raw = timings[words[pos + 1][0]][0]      # ВРЕМЯ: старт след. слова
                 else:
                     seg_end = len(lines[li])
+                    end_raw = timings[wi][1]                     # ВРЕМЯ: конец текущего слова
+
+                # старт по времени
+                start_time = starts[li] if (pos == 0 and starts) else timings[wi][0]
+
+                # ЛОКАЛЬНЫЙ ПРЕДОХРАНИТЕЛЬ: не даём сегменту инвертироваться
+                if end_raw < start_time:
+                    end_raw = start_time
 
                 segs.append({
                     'idx'        : len(segs) + 1,
                     'li'         : li,
-                    'start_time' : starts[li] if (pos == 0 and starts)
-                                               else timings[wi][0],
-                    'end_raw'    : (timings[words[pos + 1][0]][0]
-                                    if pos < n - 1
-                                    else timings[wi][1]),
+                    'start_time' : start_time,
+                    'end_raw'    : end_raw,
                     'seg_start'  : si,
                     'seg_end'    : seg_end,
                     'is_last'    : (pos == n - 1)
@@ -364,7 +370,8 @@ def write_srt(lines, spans, timings,
                 if raw[look]['end_raw'] >= cur['start_time']:
                     j = look
                     break
-            if j is None:                    # совсем плохо? – сплющиваем
+            if j is None:                    # совсем плохо? – сплющиваем в ноль
+                cur = dict(cur)
                 cur['end_raw'] = cur['start_time']
                 fixed.append(cur)
                 i += 1
@@ -386,31 +393,217 @@ def write_srt(lines, spans, timings,
                 fixed.append({
                     'idx'        : first['idx'],
                     'start_time' : first['start_time'],
-                    'end_raw'    : last['end_raw'],
-                    'text_html'  : new_html
+                    'end_raw'    : max(last['end_raw'], first['start_time']),
+                    'text_html'  : new_html,
+                    'li'         : li,
                 })
-            # 3b. «одиночное» слово-строка ➜ физическое слияние строк
+            # 3b. мультистрочная группа ➜ аккуратная склейка строк
             else:
-                lines_block = [lines[g['li']] for g in group
-                               if g is group[0] or g['li'] != group[0]['li']]
-                combo = ' '.join(lines_block)
-                offset = len(lines[group[0]['li']]) + 1   # +1 за пробел
-                span_start = first['seg_start']
-                span_end   = offset + group[-1]['seg_end']
-                new_html   = html_span(combo, span_start, span_end, is_last=True)
+                li_seq = []
+                for g in group:
+                    if g['li'] not in li_seq:
+                        li_seq.append(g['li'])
+
+                pieces = [lines[li] for li in li_seq]
+                combo_text = ' '.join(pieces)
+                offsets = {li_seq[0]: 0}
+                for k in range(1, len(li_seq)):
+                    prev_li = li_seq[k - 1]
+                    offsets[li_seq[k]] = offsets[prev_li] + len(lines[prev_li]) + 1  # +1 за пробел
+
+                span_start = offsets[first['li']] + first['seg_start']
+                span_end   = offsets[last['li']]  + last['seg_end']
+                new_html   = html_span(combo_text, span_start, span_end, is_last=True)
 
                 fixed.append({
                     'idx'        : first['idx'],
                     'start_time' : first['start_time'],
-                    'end_raw'    : last['end_raw'],
-                    'text_html'  : new_html
+                    'end_raw'    : max(last['end_raw'], first['start_time']),
+                    'text_html'  : new_html,
+                    'li'         : first['li'],
                 })
             i = j + 1
 
-        # синхронизируем «концы» с «началами» следующих
+        # 🔁 СИНХРОНИЗАЦИЯ КОНЦОВ: безусловно растягиваем к следующему старту
         for k in range(len(fixed) - 1):
-            fixed[k]['end_raw'] = fixed[k + 1]['start_time']
+            next_start = fixed[k + 1]['start_time']
+            # растянуть до следующего старта, но не левее собственного старта
+            fixed[k]['end_raw'] = max(next_start, fixed[k]['start_time'])
+
+        # страховка для последнего сегмента
+        if fixed:
+            last = fixed[-1]
+            if last['end_raw'] < last['start_time']:
+                last['end_raw'] = last['start_time']
+
         return fixed
+
+    def resolve_block_conflicts(segs, *, lines, spans, timings, eps_lines=None, max_neighbor_shift=0.2):
+        """
+        Пост-правка по блокам (строкам SRT), устраняет перекрытия/лестницы по приоритетам:
+          1) если конфликтующий блок помечен eps_lines -> позволяем наезжать на него;
+          2) иначе пытаемся разрезать перекрытие пополам (mid-cut);
+          3) если блок схлопнут/инвертирован -> растягиваем его и соседей, но не более 0.2s;
+          4) если не получилось -> берём JSON-рамки блока и стыкуем без дыр.
+        segs: список сегментов из build_segments() (каждый — “событие” для плеера).
+        eps_lines: set индексов строк (li), которые можно безболезненно «давить» (по умолчанию пусто).
+        """
+
+        eps_lines = set(eps_lines or [])
+
+        # ----- построим мету для блоков -----
+        #  line_bounds_json[li] = (json_start, json_end) по токенам этой строки
+        from collections import defaultdict
+
+        line_words = defaultdict(list)  # li -> список индексов слов (wi)
+        for wi, (li, _si, _ei) in enumerate(spans):
+            line_words[li].append(wi)
+
+        line_bounds_json = {}
+        for li, wis in line_words.items():
+            js = timings[wis[0]][0]
+            je = timings[wis[-1]][1]
+            # корректность на всякий случай
+            if je < js:
+                je = js
+            line_bounds_json[li] = (js, je)
+
+        # blocks: последовательные группы segs по li
+        blocks = []
+        i = 0
+        while i < len(segs):
+            li = segs[i]['li']
+            j = i
+            while j < len(segs) and segs[j]['li'] == li:
+                j += 1
+            idxs = list(range(i, j))
+            b_start = segs[idxs[0]]['start_time']
+            b_end   = segs[idxs[-1]]['end_raw']
+            js, je  = line_bounds_json.get(li, (b_start, b_end))
+            blocks.append({
+                'li': li,
+                'idxs': idxs,
+                'start': b_start,
+                'end': b_end,
+                'json_start': js,
+                'json_end': je,
+            })
+            i = j
+
+        def _shift_block(b, delta):
+            if abs(delta) < 1e-9:
+                return
+            for si in b['idxs']:
+                segs[si]['start_time'] += delta
+                segs[si]['end_raw']    += delta
+            b['start'] += delta
+            b['end']   += delta
+
+        def _trim_block_end_to(b, new_end):
+            # подрезаем КОНЕЦ блока (последний сегмент)
+            last = segs[b['idxs'][-1]]
+            if new_end < last['start_time']:
+                # нельзя подрезать раньше старта последнего сегмента — сведём в ноль
+                new_end = last['start_time']
+            last['end_raw'] = new_end
+            b['end'] = new_end
+
+        def _set_block_start_to(b, new_start):
+            delta = new_start - b['start']
+            _shift_block(b, delta)
+
+        def _set_block_end_to(b, new_end):
+            _trim_block_end_to(b, new_end)
+
+        # ----- 1) устранение перекрытий соседних блоков (mid-cut либо сдвиг следующего) -----
+        # несколько итераций на случай каскадных конфликтов
+        changed = True
+        iters = 0
+        while changed and iters < 3:
+            changed = False
+            iters += 1
+            for k in range(1, len(blocks)):
+                A = blocks[k - 1]
+                B = blocks[k]
+                if B['start'] < A['end'] - 1e-9:
+                    # если B — «eps-блок», позволяем наезжать (сдвигаем B к концу A)
+                    if B['li'] in eps_lines:
+                        _set_block_start_to(B, A['end'])
+                        changed = True
+                        continue
+
+                    # пробуем разрез по середине перекрытия
+                    cut = 0.5 * (A['end'] + B['start'])
+                    # можно ли подрезать A до cut?
+                    lastA = segs[A['idxs'][-1]]
+                    if cut >= lastA['start_time'] - 1e-9:
+                        _trim_block_end_to(A, cut)
+                        _set_block_start_to(B, cut)
+                        changed = True
+                    else:
+                        # mid-cut невозможен — двигаем весь B к концу A
+                        _set_block_start_to(B, A['end'])
+                        changed = True
+
+        # ----- 2) обработка схлопнутых/инвертированных блоков -----
+        for k, B in enumerate(blocks):
+            if B['end'] >= B['start'] - 1e-9:
+                continue  # ок
+            # попробуем выделить окно, двигая соседей не более чем на 0.2s
+            A = blocks[k - 1] if k > 0 else None
+            C = blocks[k + 1] if k + 1 < len(blocks) else None
+
+            target_len = 0.08  # минимальная длительность, чтобы хоть что-то мигнуло
+            # старт хотим поставить не раньше конца A минус 0.2
+            if A:
+                new_start = max(A['end'] - max_neighbor_shift, A['end'])
+            else:
+                new_start = B['start']  # без левого соседа — оставим как есть
+
+            if C:
+                new_end = min(C['start'] + max_neighbor_shift, C['start'])
+            else:
+                new_end = B['end']
+
+            if new_end < new_start + target_len:
+                # не хватает места -> растянем симметрично в доступных пределах
+                extra = target_len - (new_end - new_start)
+                # попробуем забрать по половине с каждой стороны
+                take_left  = min(max_neighbor_shift, extra / 2) if A else 0.0
+                take_right = min(max_neighbor_shift, extra / 2) if C else 0.0
+                new_start -= take_left
+                new_end   += take_right
+                # защита от заходов
+                if A and new_start < A['start']:
+                    new_start = A['start']
+                if C and new_end > C['end']:
+                    new_end = C['end']
+
+            if new_end < new_start:
+                # не получилось — упадём на JSON-рамки (ниже)
+                pass
+            else:
+                # применим
+                _set_block_start_to(B, new_start)
+                _set_block_end_to(B, new_end)
+                if A:
+                    _set_block_end_to(A, new_start)
+                if C:
+                    _set_block_start_to(C, new_end)
+                continue  # готово
+
+            # ----- 3) fallback: JSON-рамки + стык без дыр -----
+            js, je = B['json_start'], B['json_end']
+            if je < js:
+                je = js
+            _set_block_start_to(B, js)
+            _set_block_end_to(B, je)
+            if A:
+                _set_block_end_to(A, js)
+            if C:
+                _set_block_start_to(C, je)
+
+        return segs
 
     # ------------------------------------------------------------------ #
     # 4. Записываем файл                                                 #
@@ -437,6 +630,17 @@ def write_srt(lines, spans, timings,
 
     # ---- pipeline ----
     raw   = build_segments()
+
+        # НОВЫЙ ШАГ: устраняем редкие конфликтные «лестницы» между строками
+    raw = resolve_block_conflicts(
+        raw,
+        lines=lines,
+        spans=spans,
+        timings=timings,
+        eps_lines=None,          # или set([...]) если знаешь «eps-строки»
+        max_neighbor_shift=0.2   # не двигаем соседей больше 0.2s с каждой стороны
+    )
+    
     good  = fix_intervals(raw)
     dump(good)
 
@@ -466,13 +670,21 @@ def main():
     idxs = list(range(len(json_entries)))
     # align
     result = process(txt_words, toks, idxs)
-    # convert to timings тут индексы таймингов конвертируются в конкретные значения времени
+
+    # convert to timings (с защитой от инверсии)
     timings = []
     for st, ed in result:
         if st is None or ed is None:
             sys.exit(f"[ERROR] No timings for word index: {st}")
         start_time = json_entries[st]['start_time']
-        end_time = json_entries[ed]['end_time']
+        end_time   = json_entries[ed]['end_time']
+
+        # страховка от инверсии токенов/таймингов
+        if end_time < start_time:
+            # при необходимости можно логировать предупреждение
+            # print(f"[WARN] Inverted token times: st={st}, ed={ed}, {start_time} > {end_time}")
+            end_time = start_time
+
         timings.append((start_time, end_time))
 
     write_srt(lines, spans, timings, starts, args.output, args.highlight_color, args.base_color)
