@@ -83,7 +83,7 @@ def main():
         f'--output_format json '
         f'"{args.wav_path}" "{mfa_text_path}" '
         f'"{dict_path}" "{model_path}" "{args.output_json}" '
-        f'--beam 100 --retry_beam 400'
+        f'--beam 30 --retry_beam 100'
     )
 
     print("Running MFA align_one...")
