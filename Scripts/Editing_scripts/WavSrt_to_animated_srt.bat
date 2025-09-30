@@ -5,8 +5,8 @@ chcp 65001 >nul
 cd /d "%~dp0"
 
 REM — Задаём цвета по умолчанию
-set "base_color=0000FF"
-set "highlight_color=FFE471"
+set "base_color=000000"
+set "highlight_color=803FE2"
 
 REM — Задать путь к файлу run_mfa_wrapper.py. После WRAPPER_PATH= нужно написать абсолютный или относительный путь сохраняя кавычку в конце
 REM --------------------------------------------------
