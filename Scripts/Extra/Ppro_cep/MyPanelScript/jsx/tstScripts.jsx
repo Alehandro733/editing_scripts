@@ -1338,6 +1338,36 @@ function unmuteAllAudio() {
 }
 
 
+function importSrtFromList () {
+    var importedMsg = "";
+    var firstImported = true;
+
+    for (var i = 0; i < srtNames.length; i++) {
+        var filePath = projectPath + srtNames[i] + ".srt";
+        var fileObj = new File(filePath);
+
+        if (fileObj.exists) {
+            try {
+                importSingleFile(filePath);
+                if (!firstImported) {
+                    importedMsg = importedMsg + ", ";
+                }
+                importedMsg = importedMsg + srtNames[i] + ".srt";
+                firstImported = false;
+            } catch (e) {
+                // Ошибки просто игнорируем, как будто файл не импортирован
+            }
+        }
+    }
+
+    if (importedMsg && importedMsg.length) {
+        return "✅ Импортированы: " + importedMsg;
+    } else {
+        return "❌ Ни одного файла не найдено";
+    }
+}
+
+
 
 ////////////// Автоматизация
 var BR = $.global.CepJsxBridge;
@@ -1418,15 +1448,18 @@ function auto_SrtCreate() {
     selectClips(getClipsOnTrack("audio", 0));
     collectAudio1TimingsToJson();
 
-    $.sleep(1500);
+    // Теперь после успешного collectAudio1TimingsToJson() CEP панель сама вызовет функцию importSrtFromList()
+    
+    // $.sleep(1500);
 
-    for (var i = 0; i < srtNames.length; i++) {
-        var filePath = projectPath + srtNames[i] + ".srt";
-        var fileObj = new File(filePath);
-        if (fileObj.exists) {
-            importSingleFile(filePath);
-        }
-    }
+    // for (var i = 0; i < srtNames.length; i++) {
+    //     var filePath = projectPath + srtNames[i] + ".srt";
+    //     var fileObj = new File(filePath);
+    //     if (fileObj.exists) {
+    //         importSingleFile(filePath);
+    //     }
+    // }
+
 }
 
 function auto_RenderWav() {
