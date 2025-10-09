@@ -52,45 +52,66 @@ function getClipsByIds(track, clipIds) {
 }
 
 //Получить выделенные клипы из указанного объекта трека или массива (array) треков) TrackCollection не подходит, но подойдет так: app.project.sequences[index].audioTracks[index]
-function getSelectedClipsFromTrack(tracks) {
-    var trackArray = (tracks instanceof Array) ? tracks : [tracks];
-    
-    var selectedClips = [];
-    for (var t = 0; t < trackArray.length; t++) {
-        var track = trackArray[t];
-        for (var c = 0; c < track.clips.length; c++) {
-            var clip = track.clips[c];
+function getSelectedClipsFromTrack(trackOrArray) {
+    var arr = (trackOrArray && trackOrArray.splice) ? trackOrArray : [trackOrArray];
+
+    var selected = [];
+    for (var t = 0; t < arr.length; t++) {
+        var track = arr[t];
+        var clips = track.clips;
+        var n = clips.length; // кэш длины
+        for (var i = 0; i < n; i++) {
+            var clip = clips[i];
             if (clip.isSelected()) {
-                selectedClips.push(clip);
+                selected.push(clip);
             }
         }
     }
-    return selectedClips;
+    return selected;
 }
+
 
 //Получить выделенные клипы из указанной коллекции TrackCollection (app.project.sequences[index].audioTracks или app.project.sequences[index].videoTracks)
 function getSelectedClips(tracksCollection) {
-    var selectedClips = [];
-    for (var t = 0; t < tracksCollection.length; t++) {
+    var selected = [];
+    var tracksCount = tracksCollection.length;
+    for (var t = 0; t < tracksCount; t++) {
         var track = tracksCollection[t];
-        for (var c = 0; c < track.clips.length; c++) {
-            var clip = track.clips[c];
-            if (clip.isSelected()) selectedClips.push(clip);
+        var clips = track.clips;
+        var n = clips.length; // кэшируем длину один раз
+        for (var c = 0; c < n; c++) {
+            var clip = clips[c];
+            if (clip.isSelected()) {
+                selected.push(clip);
+            }
         }
     }
-    return selectedClips;
+    return selected;
 }
+
 
 /*       получает объект Клипа clip, startSec - время в секундах куда переместится клип, endSec - концовка клип            */
 function setClipStartEnd(clip, startSec, endSec) {
-    // Вычисляем смещение относительно текущего времени начала клипа
-    
-    var shift = startSec - clip.start.seconds;
-    clip.move(shift);
-    // Устанавливаем время окончания клипа как новый объект Time
-    var endTime = new Time();
-    endTime.seconds = endSec;
-    clip.end = endTime;
+    // Смещаем относительно текущего времени начала клипа
+    clip.move(startSec - clip.start.seconds);
+
+    // Если задан валидный endSec — обновляем конец клипа
+    if (endSec != null && !isNaN(endSec)) {
+        var endTime = new Time();
+        endTime.seconds = endSec;
+        clip.end = endTime;
+    }
+}
+
+/* Быстрый сдвиг + установка конца без чтения из DOM */
+function setClipStartEndFast(clip, newStartSec, knownStartSec, newEndSec) {
+    // Сдвигаем клип на разницу между новым и известным текущим стартом
+    clip.move(newStartSec - knownStartSec);
+
+    // Устанавливаем новый конец
+    var t = new Time();
+    t.seconds = newEndSec;
+    clip.end = t;
 }
 
 // Вспомогательные функции для выравнивания
@@ -98,21 +119,68 @@ function sortByStart(a, b) {
     return a.start.seconds - b.start.seconds;
 }
 
-function alignClips(movingClips, referenceClips) {
-    for (var i = 0; i < movingClips.length; i++) {
-        var movingClip = movingClips[i];
-        var referenceClip = referenceClips[i];
-        var endTime;
+// function alignClips(movingClips, referenceClips) {
+//     for (var i = 0; i < movingClips.length; i++) {
+//         var movingClip = movingClips[i];
+//         var referenceClip = referenceClips[i];
+//         var endTime;
         
-        if (i < movingClips.length - 1) {
-            endTime = referenceClips[i + 1].start.seconds;
-        }
-        else {
-            endTime = referenceClip.end.seconds;
-        }
-        setClipStartEnd(movingClip, referenceClip.start.seconds, endTime);
+//         if (i < movingClips.length - 1) {
+//             endTime = referenceClips[i + 1].start.seconds;
+//         }
+//         else {
+//             endTime = referenceClip.end.seconds;
+//         }
+//         setClipStartEnd(movingClip, referenceClip.start.seconds, endTime);
+//     }
+// }
+
+
+/* Выравнивает movingClips по referenceClips:
+   - старт каждого moving[i] = start reference[i]
+   - конец: для всех, кроме последнего, = start reference[i+1]
+            для последнего = end reference[i] */
+function alignClips(movingClips, referenceClips) {
+    // Безопасность: reference должен покрывать moving
+    if (referenceClips.length < movingClips.length) {
+        throw new Error("referenceClips короче movingClips: требуется как минимум столько же клипов в reference.");
+    }
+
+    // 1) Кэшируем нужные значения из DOM ровно по одному разу
+    var n = movingClips.length;
+    var mov = [];  // { clip, start }
+    var ref = [];  // { clip, start, end }
+    var i, c;
+
+    for (i = 0; i < n; i++) {
+        c = movingClips[i];
+        mov.push({ clip: c, start: c.start.seconds });
+    }
+
+    // В reference нам понадобится i и i+1, поэтому кэшируем минимум n+1,
+    // но не больше фактической длины referenceClips.
+    var needRefCount = (n < referenceClips.length) ? (n + 1) : n;
+    for (i = 0; i < needRefCount; i++) {
+        c = referenceClips[i];
+        ref.push({ clip: c, start: c.start.seconds, end: c.end.seconds });
+    }
+
+    // 2) Основной цикл — только математика на числах + один move() и один set end
+    for (i = 0; i < n; i++) {
+        var newStart = ref[i].start;
+        var newEnd = (i < n - 1) ? ref[i + 1].start : ref[i].end;
+
+        // Опциональная защита от инверсии (если вдруг референсы пересекаются/перекрыты):
+        // if (newEnd < newStart) { newEnd = newStart; }
+
+        setClipStartEndFast(mov[i].clip, newStart, mov[i].start, newEnd);
+
+        // можно обновить кэш при желании
+        mov[i].start = newStart;
     }
 }
+
+
 
 /** 
  * Функции для кнопок 
@@ -122,64 +190,91 @@ function alignClips(movingClips, referenceClips) {
  * ФУНКЦИОНАЛ ZIGZAG 
  ********************/
 // 1 аудио трек - на нем будет 1 клип, за ним 1 клип с 2 трека и тд.
+
 function zigZagAudioClipsWithOffset(gapSec1, gapSec2, firstTrackNumber, secondTrackNumber) {
-    
-    function processZigZag(clipsA, tracksB, offsetA, offsetB) {
-        //setClipStartEnd(clipsA[0], 0, clipsA[0].duration.seconds); (перестановка 1 клипа в самое начало. Сейчас убрал)
-        var nextTime = clipsA[0].end.seconds + offsetA;
-        
-        for (var i = 0; i < Math.min(clipsA.length, tracksB.length); i++) {
-            var clipB = tracksB[i];
-            setClipStartEnd(clipB, nextTime, nextTime + clipB.duration.seconds);
-            nextTime = clipB.end.seconds + offsetB;
-            
-            if (i + 1 >= clipsA.length) break;
-            
-            var nextClipA = clipsA[i + 1];
-            setClipStartEnd(nextClipA, nextTime, nextTime + nextClipA.duration.seconds);
-            nextTime = nextClipA.end.seconds + offsetA;
-        }
-    }
-    
-    ///////// на всякий случай проверка входных параметров временно
     gapSec1 = checkIfFloat(gapSec1, 0.5); // пауза после клипа с верхнего трека
     gapSec2 = checkIfFloat(gapSec2, 0.2); // пауза после клипа с нижнего трека
-    
-    
-    firstTrackNumber = firstTrackNumber || 1; //номера треков по умолчанию, потом я вычту из них 1 единицу 
+    firstTrackNumber  = firstTrackNumber  || 1;
     secondTrackNumber = secondTrackNumber || 2;
-    
+
     try {
         var seq = getActiveSequence();
         var audioTracks = seq.audioTracks;
-        
-        if (audioTracks.numTracks < 2)
+
+        if (audioTracks.numTracks < 2) {
             throw new Error('В секвенции "' + seq.name + '" нет 2 аудиодорожек');
-        
+        }
+
         var trackA = audioTracks[firstTrackNumber - 1];
         var trackB = audioTracks[secondTrackNumber - 1];
-        
-        var trackAClips = getSelectedClipsFromTrack(trackA);
-        var trackBClips = getSelectedClipsFromTrack(trackB);
-        
-        trackAClips.sort(sortByStart);
-        trackBClips.sort(sortByStart);
-        
-        
-        var lenA = trackAClips.length;
-        var lenB = trackBClips.length;
+
+        // Собираем выбранные клипы (только выбранные на каждом треке)
+        var clipsA = getSelectedClipsFromTrack(trackA);
+        var clipsB = getSelectedClipsFromTrack(trackB);
+
+        // Кэшируем start/duration → числа и сортируем по ним (дёшево)
+        var itemsA = [];
+        var itemsB = [];
+        var i, c;
+
+        for (i = 0; i < clipsA.length; i++) {
+            c = clipsA[i];
+            itemsA.push({ clip: c, start: c.start.seconds, dur: c.duration.seconds });
+        }
+        for (i = 0; i < clipsB.length; i++) {
+            c = clipsB[i];
+            itemsB.push({ clip: c, start: c.start.seconds, dur: c.duration.seconds });
+        }
+
+        itemsA.sort(function(a, b) { return a.start - b.start; });
+        itemsB.sort(function(a, b) { return a.start - b.start; });
+
+        var lenA = itemsA.length;
+        var lenB = itemsB.length;
+
         if (Math.abs(lenA - lenB) > 1) {
             throw new Error(
-                "Разница между количеством выбарнных клипов на 1 и 2 треках не может быть больше 1 \n\n" +
+                "Разница между количеством выбранных клипов на 1 и 2 треках не может быть больше 1 \n\n" +
                 "На первом треке выбрано " + lenA + " клипов \n" +
                 "На втором треке выбрано " + lenB + " клипов"
             );
         }
-        
-        processZigZag(trackAClips, trackBClips, gapSec1, gapSec2);
-        alert("Зиг-заг выполнен в секвенции \"" + seq.name + "\"");
-    }
-    catch (e) {
+        if (lenA === 0) {
+            throw new Error("На первом треке нет выбранных клипов.");
+        }
+
+        // Стартуем от конца A0 + gapSec1
+        var nextTime = itemsA[0].start + itemsA[0].dur + gapSec1;
+
+        // Зигзаг: B0 → A1 → B1 → A2 → ...
+        var pairs = (lenA > lenB) ? lenB : (lenA - 1);
+
+        for (i = 0; i < pairs; i++) {
+            // --- B[i] ---
+            var b = itemsB[i];
+            var bStart = nextTime;
+            b.clip.move(bStart - b.start); // только move()
+            b.start = bStart;              // обновили кэш
+            nextTime = bStart + b.dur + gapSec2;
+
+            // --- A[i+1] ---
+            var aNext = itemsA[i + 1];
+            var aStart = nextTime;
+            aNext.clip.move(aStart - aNext.start); // только move()
+            aNext.start = aStart;
+            nextTime = aStart + aNext.dur + gapSec1;
+        }
+
+        // Если клипов поровну, переносим последний B
+        if (lenB === lenA) {
+            var bLast = itemsB[lenB - 1];
+            var lastStart = nextTime;
+            bLast.clip.move(lastStart - bLast.start); // только move()
+            bLast.start = lastStart;
+        }
+
+        alert('Зиг-заг выполнен в секвенции "' + seq.name + '"');
+    } catch (e) {
         alert(e.message);
     }
 }
@@ -212,34 +307,52 @@ function alignSelectedVideoToAudio() {
 }
 
 function glueSelectedAudioClipsAddGap(gap) {
-    
     var seq = getActiveSequence();
-    
-    var GAP_DURATION = checkIfFloat(gap, 0);
-    
-    var selectedClips = getSelectedClips(seq.audioTracks);
-    
-    if (selectedClips.length < 2) {
+    var GAP = checkIfFloat(gap, 0);
+
+    var clips = getSelectedClips(seq.audioTracks);
+    if (clips.length < 2) {
         alert("Выделите минимум 2 клипа на аудиодорожках! Скрипт остановлен.");
         return;
     }
-    
-    // Сортируем по времени старта
-    selectedClips.sort(sortByStart);
-    
-    // 5) Перемещаем подряд с заданным промежутком
-    var currentTime = selectedClips[0].start.seconds + selectedClips[0].duration.seconds;
-    for (var i = 1; i < selectedClips.length; i++) {
-        var clip = selectedClips[i];
-        var dur = clip.duration.seconds;
-        var newStart = currentTime + GAP_DURATION;
-        var newEnd = newStart + dur;
-        setClipStartEnd(clip, newStart, newEnd);
-        currentTime = newEnd;
+
+    // 1) Собираем плоский массив с кэшами (чтобы не дергать DOM при сортировке/циклами)
+    var items = [];
+    var i, c;
+    for (i = 0; i < clips.length; i++) {
+        c = clips[i];
+        items.push({
+            clip: c,
+            start: c.start.seconds,      // одно чтение
+            dur:   c.duration.seconds    // одно чтение
+        });
     }
-    
-    alert("Клипы перемещены, промежуток между ними: " + GAP_DURATION + " сек");
+
+    // 2) Сортируем по числам (дешево)
+    items.sort(function(a, b) {
+        return a.start - b.start;
+    });
+
+    // 3) Переставляем подряд с зазором. Меняем только start через move().
+    var currentTime = items[0].start + items[0].dur;
+    for (i = 1; i < items.length; i++) {
+        var it = items[i];
+        var newStart = currentTime + GAP;
+        var shift = newStart - it.start;
+
+        // избегаем нулевого вызова в хост
+        if (Math.abs(shift) > 1e-9) {
+            it.clip.move(shift);
+        }
+        // обновляем наш "виртуальный" таймлайн
+        it.start = newStart;
+        currentTime = newStart + it.dur;
+    }
+
+    alert("Клипы перемещены, промежуток между ними: " + GAP + " сек");
 }
+
+
 
 /** 
  * Вспомогательные функции для работы с CSV
