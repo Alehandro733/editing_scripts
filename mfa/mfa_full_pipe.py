@@ -60,8 +60,10 @@ def main():
         "en": "english_us_mfa310",
         "ru": "russian_mfa",
         "pt": "portuguese_mfa200a",
-        "sp": "spanish_mfa200a",
+        "sp": "spanish_mfa330",
+        "sp2": "spanish_mfa200a",
         "us": "english_us_arpa300"
+        
     }
 
     if args.language not in lang_map:
