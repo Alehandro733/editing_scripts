@@ -78,26 +78,35 @@ def main():
     dict_path    = os.path.join(script_dir, "dic", f"{base_name}.dict")
     model_path   = os.path.join(script_dir, "dic", f"{base_name}.zip")
 
-    # Формируем команду MFA с учётом возможного преобразования
-    # можно так же добавить f'--quiet' чтобы не получать выводов
-    mfa_command = (
-        f'CALL "{activate_bat}" "{env_path}" && '
-        f'mfa align_one --clean --overwrite --use_mp --num_jobs 8 '
-        f'--output_format json '
-        f'"{args.wav_path}" "{mfa_text_path}" '
-        f'"{dict_path}" "{model_path}" "{args.output_json}" '
-        f'--beam 30 --retry_beam 100'
-    )
+    # Функция сборки команды MFA с настраиваемыми beam/ retry_beam
+    # можно так же добавить f'--quiet' чтобы не получать выводов    
+    def build_mfa_command(beam: int, retry_beam: int) -> str:
+        return (
+            f'CALL "{activate_bat}" "{env_path}" && '
+            f'mfa align_one --clean --overwrite --use_mp --num_jobs 8 '
+            f'--output_format json '
+            f'"{args.wav_path}" "{mfa_text_path}" '
+            f'"{dict_path}" "{model_path}" "{args.output_json}" '
+            f'--beam {beam} --retry_beam {retry_beam}'
+        )
 
     print("Running MFA align_one...")
 
-    #отключаем уведомление/уведомления
+    # Отключаем предупреждения
     env = os.environ.copy()
     env["PYTHONWARNINGS"] = "ignore::UserWarning:praatio.utilities.utils"
 
+    # 1-й запуск (исходные параметры)
+    mfa_command = build_mfa_command(beam=30, retry_beam=100)
     result = subprocess.run(mfa_command, shell=True, env=env)
+
+    # Фолбек: 2-й запуск с --beam 100 --retry_beam 400
     if result.returncode != 0:
-        sys.exit("Error while running MFA. SRT generation aborted.")
+        print("MFA failed with --beam 30 --retry_beam 100. Retrying with --beam 100 --retry_beam 400...")
+        mfa_command_retry = build_mfa_command(beam=100, retry_beam=400)
+        result = subprocess.run(mfa_command_retry, shell=True, env=env)
+        if result.returncode != 0:
+            sys.exit("Error while running MFA (after retry). SRT generation aborted.")
 
     # Генерация финального SRT — логика не изменилась, всегда берёт оригинальный text_path
     srt_script = os.path.join(script_dir, "mfa_make_srt.py")
