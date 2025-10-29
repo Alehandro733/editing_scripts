@@ -70,13 +70,24 @@ def main():
         mfa_text_path = args.text_path
 
     lang_map = {
-        "fr": "french_mfa",
+        "fr": "french_mfa300",
         "en": "english_us_mfa310",
-        "ru": "russian_mfa",
+        "ru": "russian_mfa310",
         "pt": "portuguese_mfa200a",
         "sp": "spanish_mfa330",
         "sp2": "spanish_mfa200a",
         "us": "english_us_arpa300"
+    }
+
+    # G2P моделей (.zip лежат в dic/g2p/)
+    g2p_map = {
+        "fr":  "french_mfa300",
+        "en":  "english_us_mfa300",
+        "ru":  "russian_mfa310",
+        "pt":  "portuguese_brazil_mfa200a",
+        "sp":  "spanish_spain_mfa330",
+        "sp2": "spanish_spain_mfa200a",
+        "us":  "english_us_arpa200a",
     }
 
     if args.language not in lang_map:
@@ -90,18 +101,33 @@ def main():
     dict_path    = os.path.join(script_dir, "dic", f"{base_name}.dict")
     model_path   = os.path.join(script_dir, "dic", f"{base_name}.zip")
 
+    # G2P по карте (если файл существует — подключаем)
+    g2p_name = g2p_map.get(args.language)
+    g2p_path = None
+    if g2p_name:
+        candidate = os.path.join(script_dir, "dic", "g2p", f"{g2p_name}.zip")
+        if os.path.isfile(candidate):
+            g2p_path = candidate
+            print(f"G2P model selected: {g2p_path}")
+        else:
+            print(f"Warning: G2P zip not found at {candidate}. Proceeding without G2P.")
+    else:
+        print("No G2P mapping for this language. Proceeding without G2P.")
+
     # Отключаем предупреждения praatio в stdout
     env = os.environ.copy()
     env["PYTHONWARNINGS"] = "ignore::UserWarning:praatio.utilities.utils"
 
     def build_mfa_align_one_command(beam: int, retry_beam: int) -> str:
+        #g2p_arg = f' --g2p_model_path "{g2p_path}"' if g2p_path else ''
+        g2p_arg ='' # временно отключил g2p при запуске align_one, из за бага не работает https://github.com/MontrealCorpusTools/Montreal-Forced-Aligner/issues/911
         return (
             f'CALL "{activate_bat}" "{env_path}" && '
             f'mfa align_one --clean --overwrite --use_mp --num_jobs 8 '
             f'--output_format json '
             f'"{args.wav_path}" "{mfa_text_path}" '
             f'"{dict_path}" "{model_path}" "{args.output_json}" '
-            f'--beam {beam} --retry_beam {retry_beam}'
+            f'--beam {beam} --retry_beam {retry_beam}{g2p_arg}'
         )
 
     def run_align_with_textgrid() -> bool:
@@ -139,16 +165,17 @@ def main():
                 return False
             made_tg = True
 
-            # 2) MFA align (твои оптимальные флаги)
+            # 2) MFA align
             output_dir = os.path.dirname(os.path.abspath(args.output_json))
             os.makedirs(output_dir, exist_ok=True)
 
+            g2p_arg = f' --g2p_model_path "{g2p_path}"' if g2p_path else ''
             mfa_cmd = (
                 f'CALL "{activate_bat}" "{env_path}" && '
                 f'mfa align --clean --overwrite --use_mp --use_threading --num_jobs 1 '
                 f'--output_format json --single_speaker '
                 f'"{corpus_dir}" "{dict_path}" "{model_path}" "{output_dir}" '
-                f'--beam 100 --retry_beam 400'
+                f'--beam 100 --retry_beam 400{g2p_arg}'
             )
             print("Running MFA align (TextGrid path)...")
             res = subprocess.run(mfa_cmd, shell=True, env=env)
@@ -156,20 +183,15 @@ def main():
                 print("Error: MFA align failed.")
                 return False
 
-            # 3) MFA сама называет JSON по имени WAV/TextGrid.
-            # Переименуем получившийся файл в args.output_json для унификации поведения с align_one.
+            # 3) Переименуем JSON в args.output_json
             output_dir_path = Path(output_dir)
             target_json_path = Path(args.output_json)
 
-            # Наиболее ожидаемое имя
             candidate = output_dir_path / f"{wav_base}.json"
-
             produced_path = None
             if candidate.exists():
                 produced_path = candidate
             else:
-                # Если имя слегка отличается (например, добавлены теги), попробуем найти лучшее совпадение.
-                # Сначала с префиксом wav_base, иначе любой .json (если их несколько — возьмём самый свежий).
                 jsons = sorted(output_dir_path.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
                 prefixed = [p for p in jsons if p.stem.startswith(wav_base)]
                 if prefixed:
@@ -181,9 +203,7 @@ def main():
                 print("Warning: JSON produced by MFA align not found for renaming. Falling back to align_one.")
                 return False
 
-            # Переназываем/перемещаем (с перезаписью)
             try:
-                # Удалим цель, если уже есть
                 if target_json_path.exists():
                     try:
                         target_json_path.unlink()
