@@ -65,6 +65,12 @@ def main():
         help="highlight color (6 hex digits without ‘#’)"
     )
 
+    ap.add_argument(
+        '--use_textgrid', dest='use_textgrid', default='true',
+        help="enable mfa textgrid launch"
+    )
+
+
     args = ap.parse_args()
 
     # Проверяем WAV-файл
@@ -106,7 +112,8 @@ def main():
         "--output-json",     args.output_json,
         "--output-srt",      output_srt,
         "--base-color",      args.base_color,
-        "--highlight-color", args.highlight_color
+        "--highlight-color", args.highlight_color,
+        "--use_textgrid", args.use_textgrid
     ]
 
     try:
